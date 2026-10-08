@@ -1,0 +1,1209 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B7A6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mi Plata">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Mi Plata</title>
+<style>
+:root{
+  --bg:#EDF1F0;--card:#FFFFFF;--ink:#16242B;--muted:#5E6F76;--line:#D6DEDD;--soft:#E3EAE9;
+  --in:#0B7A6B;--on-in:#FFFFFF;--out:#7B2D5E;--out2:#B4689A;--save:#2F5DA8;
+  --warn:#9A5F00;--warn-fill:#E3A63B;--bad:#B3261E;--grey:#9AA8AD;
+  color-scheme:light dark;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0F181C;--card:#172329;--ink:#E6EEEC;--muted:#93A6AB;--line:#263540;--soft:#1E2C33;
+    --in:#3CC9AE;--on-in:#08231D;--out:#D985B8;--out2:#9C4F80;--save:#7FA8F0;
+    --warn:#E3A63B;--warn-fill:#E3A63B;--bad:#FF8A80;--grey:#56676D}
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-top:env(safe-area-inset-top);-webkit-text-size-adjust:100%}
+body.lock{overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:3px solid var(--in);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;padding:10px 16px calc(104px + env(safe-area-inset-bottom))}
+h2{font-size:15px;font-weight:700;margin:22px 0 8px}
+p{max-width:70ch}
+.muted{color:var(--muted);font-size:14px}
+.num,.amount,.amt{font-variant-numeric:tabular-nums}
+.c{text-align:center}
+
+/* barra superior */
+.top{display:flex;align-items:center;justify-content:space-between;min-height:44px}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.01em}
+.brand b{color:var(--in)}
+.icon{width:44px;height:44px;border-radius:50%;font-size:24px;line-height:1;background:var(--card);border:1px solid var(--line);display:inline-grid;place-items:center}
+.back-btn{font-weight:700;color:var(--in);padding:10px 0;font-size:16px}
+
+/* periodo */
+.period{display:flex;align-items:center;gap:8px;margin-top:6px}
+.period .pl{flex:1;text-align:center}
+.pt{font-size:18px;font-weight:700}
+.ps{font-size:13px;color:var(--muted)}
+.seg{display:flex;margin:12px auto 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;width:fit-content}
+.seg button{padding:7px 16px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--in);color:var(--on-in)}
+
+/* hero */
+.hero{padding:24px 2px 4px}
+.amount{font-size:44px;line-height:1.1;font-weight:800;letter-spacing:-.02em;margin:2px 0 14px}
+.amount.mid{font-size:34px;margin-bottom:4px}
+.amount.neg{color:var(--bad)}
+.stack{display:flex;height:16px;border-radius:8px;background:var(--line);overflow:hidden;gap:2px}
+.stack i{display:block;height:100%;transition:width .25s ease}
+.k-g{background:var(--out)}.k-p{background:var(--warn-fill)}.k-a{background:var(--save)}.k-d{background:var(--in)}
+.k-c{background:var(--out2)}.k-o{background:var(--grey)}
+.legend{margin-top:14px;display:grid;gap:8px}
+.legend div{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.legend dt{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px}
+.legend dd{font-weight:600;font-variant-numeric:tabular-nums}
+.legend .tot{border-top:1px solid var(--line);padding-top:8px}
+.sw{width:12px;height:12px;border-radius:4px;display:inline-block;flex:none}
+.hint{color:var(--muted);font-size:14px;margin-top:10px}
+
+/* tarjetas y listas */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
+.card h3{font-size:16px;margin-bottom:4px}
+.card p{font-size:14px;color:var(--muted)}
+.card .btn{margin-top:10px}
+.welcome{border:1.5px solid var(--in)}
+.list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;padding:12px 14px;width:100%;text-align:left;border-bottom:1px solid var(--line);min-height:56px}
+.row:last-child{border-bottom:0}
+button.row:active{background:var(--soft)}
+.emo{width:36px;height:36px;border-radius:11px;background:var(--soft);display:grid;place-items:center;font-size:18px;flex:none}
+.grow{flex:1;min-width:0}
+.t{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s{font-size:13px;color:var(--muted)}
+.s.warn{color:var(--warn);font-weight:600}
+.s.bad{color:var(--bad);font-weight:600}
+.s.ok{color:var(--in);font-weight:600}
+.amt{font-weight:700;white-space:nowrap}
+.amt.in{color:var(--in)}
+.amt.sv{color:var(--save)}
+.row.done .t,.row.done .amt{opacity:.55}
+.pill{padding:8px 14px;border-radius:999px;border:1.5px solid var(--in);color:var(--in);font-weight:700;font-size:14px;min-width:84px}
+.pill.on{background:var(--in);color:var(--on-in)}
+.gh{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin:16px 4px 6px}
+.gh b{font-weight:600;color:var(--ink)}
+.alert{margin-top:14px;background:var(--card);border:1.5px solid var(--warn-fill);border-radius:14px;overflow:hidden}
+.alert.bad{border-color:var(--bad)}
+.alert.info{border-color:var(--save)}
+.alert h2{margin:12px 14px 6px}
+.alert .row{border-top:1px solid var(--line);border-bottom:0}
+.pbar{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--in);border-radius:5px;transition:width .25s ease}
+.pbar.sv i{background:var(--save)}
+.pbar.warn i{background:var(--warn-fill)}
+.pbar.over i{background:var(--bad)}
+.bud{display:grid;gap:14px}
+.bud .r{display:grid;gap:5px}
+.bud .l{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.bud .l b{font-weight:600}
+.bud .sub{font-size:12px;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:30px 20px;background:var(--card);border:1px dashed var(--line);border-radius:14px;font-size:15px}
+.sec-h{display:flex;justify-content:space-between;align-items:center;margin:22px 0 8px;gap:10px}
+.sec-h h2{margin:0}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.kpi .v{font-weight:800;font-size:19px;font-variant-numeric:tabular-nums}
+.kpi .k{font-size:13px;color:var(--muted)}
+.pocket{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:10px}
+.pocket .hd{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pocket .hd .amt{font-size:18px}
+.tip{display:flex;gap:10px;padding:12px 14px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--in);border-radius:12px;margin-top:10px;font-size:14px}
+.tip.warn{border-left-color:var(--warn-fill)}
+.tip.bad{border-left-color:var(--bad)}
+.tip .ti{font-size:18px;line-height:1.2}
+
+/* plan */
+.sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:4;background:var(--bg);padding:8px 0 10px;margin:0 -2px}
+.sticky .box{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1.5px solid var(--in);border-radius:14px;padding:10px 14px}
+.sticky .box b{font-size:22px;font-variant-numeric:tabular-nums}
+.sticky .box b.neg{color:var(--bad)}
+.sl{margin-top:14px}
+.sl .l{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px}
+.sl .l b{font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--in);height:30px}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-size:10px;font-family:inherit}
+.chart .lbl{font-size:10.5px;font-weight:700;fill:var(--ink)}
+.detail{margin-top:10px}
+.detail .row{min-height:44px;padding:9px 14px}
+
+/* botones */
+.btn{padding:13px 18px;border-radius:12px;font-weight:700;border:1.5px solid var(--line);background:var(--card)}
+.btn.primary{background:var(--in);border-color:var(--in);color:var(--on-in)}
+.btn.save{background:var(--save);border-color:var(--save);color:#fff}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.small{padding:8px 12px;font-size:14px;white-space:nowrap}
+.btn.block{display:block;width:100%;margin-top:10px;text-align:center}
+.btns{display:flex;gap:10px;margin-top:12px}
+.btns .btn{flex:1}
+.fab{position:fixed;right:max(16px,calc(50% - 280px + 16px));bottom:calc(78px + env(safe-area-inset-bottom));
+  width:58px;height:58px;border-radius:50%;background:var(--in);color:var(--on-in);font-size:34px;line-height:1;
+  box-shadow:0 4px 14px rgba(0,0,0,.28);z-index:5}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:var(--card);
+  border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tabbar button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:12px;color:var(--muted);font-weight:600;min-height:52px}
+.tabbar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button[aria-current="page"]{color:var(--in)}
+
+/* hojas */
+#sheet{position:fixed;inset:0;z-index:20}
+#sheet .back{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+#sheet .panel{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--bg);border-radius:22px 22px 0 0;
+  padding:10px 18px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;animation:up .18s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){#sheet .panel{animation:none}.stack i,.pbar i{transition:none}}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 10px}
+.panel h2{font-size:19px;margin:4px 0 12px}
+.panel .lead{color:var(--muted);font-size:15px;margin:-4px 0 14px}
+.panel label{display:block;margin-bottom:12px}
+.panel label>span,.lbl{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:600}
+.panel input[type=text],.panel input[type=date],.panel input[type=month],.panel input[type=number],.panel input:not([type]),.panel select{
+  width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--card)}
+.panel .big input{font-size:32px;font-weight:800;padding:10px 12px;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chips label{margin:0}
+.chips input{position:absolute;opacity:0;pointer-events:none}
+.chips span{display:inline-block;margin:0;padding:8px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);font-size:14px;font-weight:600}
+.chips input:checked+span{background:var(--in);border-color:var(--in);color:var(--on-in)}
+.chips input:focus-visible+span{outline:3px solid var(--in);outline-offset:2px}
+.qa{display:flex;gap:8px;margin:-4px 0 14px}
+.qa button{flex:1;padding:8px 0;border-radius:10px;background:var(--card);border:1.5px solid var(--line);font-weight:700;font-size:14px}
+.net{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);margin-bottom:12px;font-weight:700}
+.check{display:flex!important;align-items:center;gap:10px}
+.check input{width:22px;height:22px;accent-color:var(--in);flex:none}
+.check span{margin:0!important;color:var(--ink)!important;font-size:15px!important;font-weight:500!important}
+.actions{display:flex;gap:10px;margin-top:8px}
+.actions .primary,.actions .save{flex:1}
+.dots{display:flex;gap:6px;justify-content:center;margin-bottom:8px}
+.dots i{width:28px;height:5px;border-radius:3px;background:var(--line)}
+.dots i.on{background:var(--in)}
+.live{background:var(--card);border:1.5px solid var(--in);border-radius:14px;padding:12px 14px;margin:6px 0 10px;font-size:15px}
+.live b{font-variant-numeric:tabular-nums}
+.grp{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 12px 2px;margin-bottom:12px}
+.grp .gt{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-weight:700}
+.tag{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.tag.ok{color:var(--in)}
+.tag.warn{color:var(--warn)}
+.mvlist .row{min-height:46px;padding:9px 12px}
+#toast{position:fixed;left:50%;bottom:calc(146px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:14px;font-size:14px;font-weight:600;z-index:30;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center}
+#toast.show{opacity:1}
+.ajustes p{font-size:14px;color:var(--muted);margin:6px 2px 10px}
+</style>
+</head>
+<body>
+<div class="app"><main id="main"></main></div>
+<button id="fab" class="fab" data-act="fab" aria-label="Registrar gasto" hidden>+</button>
+<nav class="tabbar" aria-label="Secciones">
+  <button data-act="tab" data-tab="resumen"><svg viewBox="0 0 24 24"><path d="M4 13h6V4H4zM14 20h6V4h-6zM4 20h6v-4H4z"/></svg>Resumen</button>
+  <button data-act="tab" data-tab="movs"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg>Movimientos</button>
+  <button data-act="tab" data-tab="pagos"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>Pagos</button>
+  <button data-act="tab" data-tab="ahorro"><svg viewBox="0 0 24 24"><path d="M5 11a7 6 0 0 1 13-2h2v4h-2a7 6 0 0 1-3 3v3h-3v-2h-2v2H7v-3a6 6 0 0 1-2-5z"/><path d="M10 7h4"/></svg>Ahorro</button>
+  <button data-act="tab" data-tab="plan"><svg viewBox="0 0 24 24"><path d="M4 19l5-6 4 3 7-9"/><path d="M15 7h5v5"/></svg>Plan</button>
+</nav>
+<div id="sheet" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="file" accept="application/json,.json" hidden>
+
+<script>
+'use strict';
+/* ================= Constantes ================= */
+const CATS=['Comida','Pareja','Transporte','Hogar','Servicios','Salud','Educación','Ocio','Ropa','Deudas','Otros'];
+const EMO={Comida:'🍽️',Pareja:'❤️',Transporte:'🚌',Hogar:'🏠',Servicios:'💡',Salud:'🩺','Educación':'🎓',Ocio:'🎮',Ropa:'👕',Deudas:'💳',Otros:'📦'};
+const SUBS={Pareja:['Cine','Hospedaje','Comida','Regalos','Transporte','Otros']};
+const SUBEMO={Cine:'🎬',Hospedaje:'🏨',Comida:'🍝',Regalos:'🎁',Transporte:'🚕',Otros:'✨'};
+const KINDS={sueldo:'Sueldo',quincena:'Quincena',extra:'Ingreso extra'};
+const XKINDS={grati:'Gratificación',cts:'CTS',utilidades:'Utilidades',afp:'Retiro AFP',otro:'Otro ingreso'};
+const XEMO={grati:'🎄',cts:'🏦',utilidades:'📈',afp:'🧓',otro:'💵'};
+const PKINDS={ahorro:'Ahorro libre',meta:'Meta con fecha',cts:'CTS (no se gasta)'};
+const PEMO=['💰','🎯','🎓','🛡️','🏦','❤️','🎁','✈️'];
+const MONTHS=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const MON3=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+/* ================= Utilidades ================= */
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayStr=()=>ymd(new Date());
+const ymNow=()=>todayStr().slice(0,7);
+const dim1=(y,m)=>new Date(y,m,0).getDate();
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const sum=(a,f)=>a.reduce((s,x)=>s+(f(x)||0),0);
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const int=v=>parseInt(v,10)||0;
+function num(v){
+  let s=String(v==null?'':v).trim();
+  if(s.includes(',')&&s.includes('.'))s=s.replace(/,/g,'');else s=s.replace(',','.');
+  const n=parseFloat(s);return isFinite(n)?n:0;
+}
+function money(n){
+  n=Math.round(n*100)/100;
+  return (n<0?'-':'')+'S/ '+Math.abs(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+const money0=n=>{n=Math.round(n);return (n<0?'-':'')+'S/ '+Math.abs(n).toLocaleString('es-PE');};
+const kfmt=n=>Math.abs(n)>=1000?(n/1000).toFixed(1).replace('.0','')+'k':String(Math.round(n));
+const dfmt=s=>{const p=s.split('-');return (+p[2])+' '+MON3[+p[1]-1];};
+const dfmtY=s=>{const p=s.split('-');return (+p[2])+' de '+MONTHS[+p[1]-1]+(p[0]!==todayStr().slice(0,4)?' de '+p[0]:'');};
+const dayDiff=s=>Math.round((new Date(s+'T00:00:00')-new Date(todayStr()+'T00:00:00'))/864e5);
+function nextDate(mm,dd){const y=new Date().getFullYear(),s=y+'-'+pad(mm)+'-'+pad(dd);return s>=todayStr()?s:(y+1)+'-'+pad(mm)+'-'+pad(dd);}
+function monthsUntil(date){const t=new Date(),y=+date.slice(0,4),m=+date.slice(5,7);return Math.max(1,(y-t.getFullYear())*12+(m-(t.getMonth()+1)));}
+
+/* ================= Estado y almacenamiento ================= */
+const EMPTY=()=>({v:2,income:[],tx:[],fixed:[],inst:[],paid:{},pockets:[],moves:[],budgets:{},extras:[],
+  set:{gross:0,afpPct:10,payMode:'mensual',payDay:30,floor:1000,saveMonthly:0,foodDays:10,foodCost:10,otherVar:0,onboarded:false}});
+function migrate(d){
+  const s=Object.assign(EMPTY(),d||{});
+  s.set=Object.assign(EMPTY().set,(d&&d.set)||{});
+  ['income','tx','fixed','inst','pockets','moves','extras'].forEach(k=>{if(!Array.isArray(s[k]))s[k]=[];});
+  if(!s.paid||typeof s.paid!=='object')s.paid={};
+  if(!s.budgets||typeof s.budgets!=='object')s.budgets={};
+  s.fixed.forEach(f=>{if(!f.start)f.start=ymNow();if(!f.months)f.months=[];});
+  Object.keys(s.paid).forEach(k=>{if(typeof s.paid[k]==='string'){const p=k.split(':'),it=(p[0]==='f'?s.fixed:s.inst).find(x=>x.id===p[1]);s.paid[k]={date:s.paid[k],amount:it?amountFor(it,p[2]):null};}});
+  s.v=3;return s;
+}
+let S=EMPTY();
+const DB='miplata',ST='kv';
+function idb(){return new Promise((res,rej)=>{
+  const r=indexedDB.open(DB,1);
+  r.onupgradeneeded=()=>r.result.createObjectStore(ST);
+  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+});}
+async function load(){
+  try{const db=await idb();return await new Promise(res=>{const q=db.transaction(ST).objectStore(ST).get('state');q.onsuccess=()=>res(q.result);q.onerror=()=>res(null);});}
+  catch(e){try{return JSON.parse(localStorage.getItem('miplata-state'));}catch(_){return null;}}
+}
+async function save(){
+  try{const db=await idb();db.transaction(ST,'readwrite').objectStore(ST).put(JSON.parse(JSON.stringify(S)),'state');}
+  catch(e){try{localStorage.setItem('miplata-state',JSON.stringify(S));}catch(_){}}
+}
+function commit(msg){save();render();if(msg)toast(msg);}
+function upsert(arr,r){const i=arr.findIndex(x=>x.id===r.id);if(i>=0)arr[i]=r;else arr.push(r);}
+function remove(arr,id){const i=arr.findIndex(x=>x.id===id);if(i>=0)arr.splice(i,1);}
+
+/* ================= Periodo ================= */
+const now0=new Date();
+let view={tab:'resumen',y:now0.getFullYear(),m:now0.getMonth(),half:now0.getDate()<=15?1:2,mov:'gastos',cat:''};
+function range(){
+  const {y,m,half}=view,n=dim1(y,m+1),p=y+'-'+pad(m+1)+'-';
+  if(half===1)return [p+'01',p+'15'];
+  if(half===2)return [p+'16',p+pad(n)];
+  return [p+'01',p+pad(n)];
+}
+function shift(dir){
+  if(view.half===0)view.m+=dir;
+  else{view.half+=dir;if(view.half>2){view.half=1;view.m++;}if(view.half<1){view.half=2;view.m--;}}
+  if(view.m>11){view.m=0;view.y++;}if(view.m<0){view.m=11;view.y--;}
+  render();
+}
+function goTo(date){const p=date.split('-').map(Number);view.y=p[0];view.m=p[1]-1;if(view.half!==0)view.half=p[2]<=15?1:2;}
+
+/* ================= Pagos programados ================= */
+const eligible=(c,m)=>!(c.months&&c.months.length)||c.months.includes(m);
+function instIdx(c,y,m){
+  let sy=+c.start.slice(0,4),sm=+c.start.slice(5,7);
+  if(y*12+m<sy*12+sm||!eligible(c,m))return -1;
+  let n=0;
+  while(sy*12+sm<y*12+m){if(eligible(c,sm))n++;sm++;if(sm>12){sm=1;sy++;}}
+  return n;
+}
+function amountFor(it,ym){
+  if(it.over&&it.over[ym]!=null)return it.over[ym];
+  let a=it.amount;(it.hist||[]).slice().sort((x,z)=>x.from.localeCompare(z.from)).forEach(h=>{if(h.from<=ym)a=h.amount;});
+  return a;
+}
+function setFrom(it,ym,a){
+  it.hist=(it.hist||[]).filter(h=>h.from<ym).concat([{from:ym,amount:a}]);
+  if(it.over){const o={};Object.keys(it.over).forEach(k=>{if(k<ym)o[k]=it.over[k];});it.over=o;}
+}
+function setOver(it,ym,a){
+  it.over=Object.assign({},it.over||{});delete it.over[ym];
+  if(Math.abs(a-amountFor(it,ym))>0.004)it.over[ym]=a;
+}
+function paidInfo(key){const v=S.paid[key];if(!v)return null;return typeof v==='string'?{date:v,amount:null}:v;}
+const ymAdd=(ym,n)=>{const t=+ym.slice(0,4)*12+(+ym.slice(5,7)-1)+n;return Math.floor(t/12)+'-'+pad(t%12+1);};
+const ymLabel=ym=>cap(MONTHS[+ym.slice(5,7)-1])+' '+ym.slice(0,4);
+function dues(from,to){
+  const out=[],a=from.split('-').map(Number),b=to.split('-').map(Number);
+  let y=a[0],m=a[1];
+  while(y<b[0]||(y===b[0]&&m<=b[1])){
+    const ym=y+'-'+pad(m),n=dim1(y,m);
+    S.fixed.forEach(f=>{
+      if(f.active===false||ym<f.start||!eligible(f,m))return;
+      const due=ym+'-'+pad(Math.min(f.day,n));if(due<from||due>to)return;
+      const key='f:'+f.id+':'+ym,pd=paidInfo(key);
+      out.push({key,type:'f',id:f.id,ym,name:f.name,amount:pd&&pd.amount!=null?pd.amount:amountFor(f,ym),expected:amountFor(f,ym),cat:f.cat,due,paid:pd?pd.date:null,label:'',once:false});
+    });
+    S.inst.forEach(c=>{
+      const idx=instIdx(c,y,m);if(idx<0||idx>=c.total)return;
+      const due=ym+'-'+pad(Math.min(c.day,n));if(due<from||due>to)return;
+      const key='c:'+c.id+':'+ym,pd=paidInfo(key);
+      out.push({key,type:'c',id:c.id,ym,name:c.name,amount:pd&&pd.amount!=null?pd.amount:amountFor(c,ym),expected:amountFor(c,ym),cat:c.cat,due,paid:pd?pd.date:null,
+        label:c.total===1?'pago único':'cuota '+(idx+1)+' de '+c.total,once:c.total===1});
+    });
+    m++;if(m>12){m=1;y++;}
+  }
+  return out.sort((x,z)=>x.due.localeCompare(z.due)||x.name.localeCompare(z.name));
+}
+function dueAlerts(){
+  const t=new Date();
+  const from=ymd(new Date(t.getFullYear(),t.getMonth()-1,1)),to=ymd(new Date(t.getFullYear(),t.getMonth(),t.getDate()+3));
+  return dues(from,to).filter(d=>{
+    if(d.paid)return false;
+    const src=(d.type==='f'?S.fixed:S.inst).find(x=>x.id===d.id);
+    return !(src&&src.created)||d.due>=src.created;
+  });
+}
+
+
+/* ================= Ahorro ================= */
+const pocketBal=id=>sum(S.moves.filter(m=>m.pocketId===id),m=>m.type==='retiro'?-m.amount:m.amount);
+const liquid=()=>sum(S.pockets.filter(p=>p.kind!=='cts'),p=>pocketBal(p.id));
+const ctsBal=()=>sum(S.pockets.filter(p=>p.kind==='cts'),p=>pocketBal(p.id));
+function addMove(pocketId,type,amount,note,date){S.moves.push({id:uid(),pocketId,type,amount,note:note||'',date:date||todayStr()});}
+function setBalance(pid,target,note){const d=Math.round((target-pocketBal(pid))*100)/100;if(d)addMove(pid,'ajuste',d,note||'Saldo inicial');}
+function ensurePocket(src,def){let p=S.pockets.find(x=>x.src===src);if(!p){p=Object.assign({id:uid(),src,created:todayStr()},def);S.pockets.push(p);}else Object.assign(p,def);return p;}
+function defaultPocket(){let p=S.pockets.find(x=>x.kind==='ahorro')||S.pockets.find(x=>x.kind==='meta');
+  if(!p){p={id:uid(),name:'Ahorro',kind:'ahorro',emoji:'💰',created:todayStr()};S.pockets.push(p);}return p;}
+function metaNeed(p){
+  if(p.kind!=='meta'||!p.target)return null;
+  const bal=pocketBal(p.id),falta=Math.max(0,p.target-bal);
+  const ml=p.deadline?monthsUntil(p.deadline):null;
+  const xs=p.deadline?S.extras.filter(x=>!x.done&&x.include&&!isCtsDest(x)&&x.date>=todayStr()&&x.date<=p.deadline):[];
+  const xt=sum(xs,x=>x.amount);
+  return {bal,falta,pct:Math.min(100,bal/p.target*100),ml,xs,perMonth:ml?Math.max(0,falta-xt)/ml:null};
+}
+
+/* ================= Resumen del periodo ================= */
+function summary(){
+  const r=range(),from=r[0],to=r[1];
+  const inc=S.income.filter(i=>i.date>=from&&i.date<=to);
+  const tx=S.tx.filter(t=>t.date>=from&&t.date<=to);
+  const mv=S.moves.filter(x=>x.date>=from&&x.date<=to);
+  const du=dues(from,to);
+  const ingresos=sum(inc,i=>i.net),diarios=sum(tx,t=>t.amount);
+  const pagados=sum(du.filter(d=>d.paid),d=>d.amount),pend=sum(du.filter(d=>!d.paid),d=>d.amount);
+  const ahorrado=sum(mv.filter(x=>x.type==='aporte'),x=>x.amount),retirado=sum(mv.filter(x=>x.type==='retiro'),x=>x.amount);
+  const gastado=diarios+pagados,disp=ingresos+retirado-gastado-pend-ahorrado;
+  const cats={};
+  tx.forEach(t=>{cats[t.cat]=(cats[t.cat]||0)+t.amount;});
+  du.forEach(d=>{cats[d.cat]=(cats[d.cat]||0)+d.amount;});
+  return {from,to,inc,tx,du,ingresos,diarios,pagados,pend,gastado,ahorrado,retirado,disp,cats};
+}
+function monthSpent(cat,y,m){const p=y+'-'+pad(m)+'-';return S.tx.filter(t=>t.cat===cat&&t.date.slice(0,8)===p);}
+
+/* ================= Plan y proyección ================= */
+let P=null;
+function planInit(){
+  P={pareja:S.budgets.Pareja||0,foodDays:S.set.foodDays,foodCost:S.set.foodCost,otherVar:S.set.otherVar||0,save:S.set.saveMonthly||0,incl:{},sel:null};
+  S.extras.forEach(x=>{P.incl[x.id]=!!x.include;});
+}
+const netSalary=()=>S.set.gross*(1-S.set.afpPct/100);
+function varTotal(p){
+  const rest=sum(Object.entries(S.budgets).filter(e=>e[0]!=='Pareja'&&e[0]!=='Comida'),e=>num(e[1]));
+  return rest+p.pareja+p.foodDays*p.foodCost+p.otherVar;
+}
+const isCtsDest=x=>{const pk=S.pockets.find(p=>p.id===x.dest);return !!(pk&&pk.kind==='cts');};
+function monthFlows(y,m,p){
+  const n=dim1(y,m),from=y+'-'+pad(m)+'-01',to=y+'-'+pad(m)+'-'+pad(n);
+  const ex=S.extras.filter(x=>!x.done&&x.date>=from&&x.date<=to&&(p.incl[x.id]!==undefined?p.incl[x.id]:x.include));
+  const du=dues(from,to);
+  const salary=netSalary(),exLiq=sum(ex.filter(x=>!isCtsDest(x)),x=>x.amount),exCts=sum(ex.filter(isCtsDest),x=>x.amount);
+  const duesT=sum(du,d=>d.amount),varT=varTotal(p);
+  return {y,m,from,to,salary,ex,exLiq,exCts,du,duesT,varT,sobra:salary+exLiq-duesT-varT};
+}
+function project(p){
+  const t=new Date();let y=t.getFullYear(),m=t.getMonth()+1,bal=liquid(),cts=ctsBal();
+  const ymp=y+'-'+pad(m)+'-';
+  const savedNow=sum(S.moves.filter(x=>x.date.slice(0,8)===ymp&&x.type!=='ajuste'),x=>x.type==='aporte'?x.amount:-x.amount);
+  const spentNow=sum(S.tx.filter(x=>x.date.slice(0,8)===ymp),x=>x.amount);
+  const out=[];
+  for(let i=0;i<12;i++){
+    const f=monthFlows(y,m,p);
+    if(i===0&&spentNow>f.varT){f.varT=spentNow;f.sobra=f.salary+f.exLiq-f.duesT-f.varT;}
+    const contrib=i===0?f.sobra-savedNow:f.sobra;
+    bal+=contrib;cts+=f.exCts;
+    out.push(Object.assign(f,{bal,cts}));
+    m++;if(m>12){m=1;y++;}
+  }
+  return out;
+}
+function typicalMonth(p){
+  const t=new Date(),y=t.getFullYear(),m=t.getMonth()+1;
+  const du=dues(y+'-'+pad(m)+'-01',y+'-'+pad(m)+'-'+pad(dim1(y,m))).filter(d=>!d.once);
+  const salary=netSalary(),fijos=sum(du,d=>d.amount),food=p.foodDays*p.foodCost;
+  const otros=varTotal(p)-p.pareja-food;
+  return {salary,fijos,pareja:p.pareja,food,otros,sobra:salary-fijos-p.pareja-food-otros};
+}
+
+/* ================= Componentes ================= */
+function periodBar(){
+  const {y,m,half}=view,n=dim1(y,m+1);
+  const label=half===0?cap(MONTHS[m])+' '+y:(half===1?'1.ª':'2.ª')+' quincena';
+  const sub=(half===2?'16':'1')+' al '+(half===1?'15':n)+' de '+MONTHS[m]+(half===0?'':' de '+y);
+  return '<header class="period"><button class="icon" data-act="prev" aria-label="Periodo anterior">‹</button>'+
+    '<div class="pl"><div class="pt">'+label+'</div><div class="ps">'+sub+'</div></div>'+
+    '<button class="icon" data-act="next" aria-label="Periodo siguiente">›</button></header>'+
+    '<div class="seg" role="group" aria-label="Tipo de periodo"><button data-act="mode" data-v="q" aria-pressed="'+(half!==0)+'">Quincena</button>'+
+    '<button data-act="mode" data-v="mes" aria-pressed="'+(half===0)+'">Mes</button></div>';
+}
+function dueRow(d){
+  const df=dayDiff(d.due);let sub='Vence el '+dfmt(d.due),cls='';
+  if(d.paid)sub='Pagado el '+dfmt(d.paid);
+  else if(df<0){sub='Venció hace '+(-df)+(df===-1?' día':' días');cls='bad';}
+  else if(df===0){sub='Vence hoy';cls='warn';}
+  else if(df<=3){sub='Vence en '+df+(df===1?' día':' días');cls='warn';}
+  if(d.label)sub+=', '+d.label;
+  return '<div class="row'+(d.paid?' done':'')+'"><div class="emo">'+(EMO[d.cat]||'📌')+'</div><div class="grow"><div class="t">'+esc(d.name)+'</div><div class="s '+cls+'">'+esc(sub)+'</div></div>'+
+    '<div class="amt">'+money0(d.amount)+'</div>'+
+    '<button class="pill'+(d.paid?' on':'')+'" data-act="pay" data-key="'+esc(d.key)+'" aria-pressed="'+(!!d.paid)+'">'+(d.paid?'Pagado':'Pagar')+'</button></div>';
+}
+function budgetRows(y,m){
+  const ents=Object.entries(S.budgets).filter(e=>num(e[1])>0);
+  if(!ents.length)return '';
+  return '<div class="card bud">'+ents.map(e=>{
+    const cat=e[0],lim=num(e[1]),list=monthSpent(cat,y,m),sp=sum(list,t=>t.amount),pct=sp/lim*100;
+    const cls=pct>=100?'over':pct>=80?'warn':'';
+    let sub=pct>=100?'Te pasaste por '+money0(sp-lim):'Te quedan '+money0(lim-sp);
+    if(SUBS[cat]&&list.length){
+      const by={};list.forEach(t=>{const k=t.sub||'Otros';by[k]=(by[k]||0)+t.amount;});
+      sub+='. '+Object.entries(by).sort((a,b)=>b[1]-a[1]).map(x=>(SUBEMO[x[0]]||'')+' '+x[0]+' '+money0(x[1])).join(', ');
+    }
+    return '<div class="r"><div class="l"><span>'+(EMO[cat]||'')+' '+esc(cat)+'</span><b class="num">'+money0(sp)+' de '+money0(lim)+'</b></div>'+
+      '<div class="pbar '+cls+'"><i style="width:'+Math.min(100,pct)+'%"></i></div><div class="sub">'+esc(sub)+'</div></div>';
+  }).join('')+'</div>';
+}
+
+/* ================= Vistas ================= */
+function vResumen(){
+  const s=summary(),base=Math.max(s.ingresos+s.retirado,s.gastado+s.pend+s.ahorrado);
+  const w=v=>base>0?Math.max(0,v)/base*100:0;
+  let h='<div class="top"><div class="brand">Mi <b>Plata</b></div><button class="icon" data-act="tab" data-tab="ajustes" aria-label="Ajustes">⚙︎</button></div>'+periodBar();
+  if(!S.set.onboarded)h+='<section class="card welcome"><h3>Arma tu plan en 2 minutos</h3><p>Sueldo, AFP, universidad, pareja, CTS y gratificación. Con eso la app calcula cuánto puedes ahorrar y te avisa antes de bajar de tu piso.</p><button class="btn primary block" data-act="wizard">Empezar</button></section>';
+  const al=dueAlerts();
+  if(al.length){const over=al.some(d=>dayDiff(d.due)<0);
+    h+='<section class="alert'+(over?' bad':'')+'"><h2>'+(over?'Tienes pagos vencidos':'Pagos que vencen pronto')+'</h2>'+al.slice(0,5).map(dueRow).join('')+'</section>';}
+  const xs=S.extras.filter(x=>!x.done&&dayDiff(x.date)<=0&&dayDiff(x.date)>=-60);
+  if(xs.length)h+='<section class="alert info"><h2>¿Ya te depositaron?</h2>'+xs.map(x=>'<div class="row"><div class="emo">'+XEMO[x.kind]+'</div><div class="grow"><div class="t">'+esc(x.name)+'</div><div class="s">Esperado el '+dfmt(x.date)+', '+money0(x.amount)+'</div></div><button class="pill" data-act="x-reg" data-id="'+x.id+'">Registrar</button></div>').join('')+'</section>';
+  const hasData=S.income.length+S.tx.length+S.fixed.length+S.inst.length+S.pockets.length>0;
+  if(hasData&&(!S.set.lastBackup||dayDiff(S.set.lastBackup)<-30))
+    h+='<section class="card" style="display:flex;gap:12px;align-items:center"><p style="flex:1">'+(S.set.lastBackup?'Hace más de 30 días sin respaldo.':'Aún no has hecho un respaldo.')+' Tus datos viven solo en este dispositivo.</p><button class="btn small" data-act="export-json" style="margin:0">Exportar</button></section>';
+  h+='<section class="hero"><div class="muted">'+(view.half===0?'Te queda este mes':'Te queda esta quincena')+'</div>'+
+    '<div class="amount'+(s.disp<0?' neg':'')+'">'+money(s.disp)+'</div>'+
+    '<div class="stack" role="img" aria-label="Gastado '+money(s.gastado)+', por pagar '+money(s.pend)+', ahorrado '+money(s.ahorrado)+', te queda '+money(s.disp)+'">'+
+    '<i class="k-g" style="width:'+w(s.gastado)+'%"></i><i class="k-p" style="width:'+w(s.pend)+'%"></i><i class="k-a" style="width:'+w(s.ahorrado)+'%"></i><i class="k-d" style="width:'+w(s.disp)+'%"></i></div>'+
+    '<dl class="legend"><div><dt><b class="sw k-g"></b>Gastado</dt><dd>'+money(s.gastado)+'</dd></div>'+
+    '<div><dt><b class="sw k-p"></b>Por pagar</dt><dd>'+money(s.pend)+'</dd></div>'+
+    '<div><dt><b class="sw k-a"></b>Apartado para ahorro</dt><dd>'+money(s.ahorrado)+'</dd></div>'+
+    '<div class="tot"><dt>Ingresos del periodo'+(s.retirado?' (más '+money0(s.retirado)+' sacados del ahorro)':'')+'</dt><dd>'+money(s.ingresos)+'</dd></div></dl>'+
+    (s.ingresos===0?'<p class="hint">Registra tu sueldo en Movimientos, pestaña Ingresos, para ver cuánto te queda.</p>':'')+'</section>';
+  if(S.set.saveMonthly>0&&s.ingresos>0&&s.ahorrado===0){
+    const sug=view.half===0||S.set.payMode==='mensual'?S.set.saveMonthly:S.set.saveMonthly/2;
+    h+='<section class="card" style="border-color:var(--save)"><h3>Págate primero</h3><p>Ya cobraste en este periodo y aún no apartas tu ahorro. Tu plan dice '+money0(sug)+'.</p><button class="btn save block" data-act="payfirst" data-v="'+sug+'">Apartar '+money0(sug)+'</button></section>';
+  }
+  if(S.pockets.length){
+    const liq=liquid(),fl=S.set.floor||0,ok=liq>=fl;
+    h+='<button class="pocket" data-act="tab" data-tab="ahorro"><div class="hd"><div class="emo">💰</div><div class="grow"><div class="t">Tu ahorro</div><div class="s '+(ok?'ok':'warn')+'">'+(fl?(ok?'Por encima de tu piso de '+money0(fl):'Te faltan '+money0(fl-liq)+' para tu piso'):'Sin piso definido')+'</div></div><div class="amt sv">'+money0(liq)+'</div></div>'+
+      (fl?'<div class="pbar sv"><i style="width:'+Math.min(100,liq/fl*100)+'%"></i></div>':'')+'</button>';
+  }
+  const br=budgetRows(view.y,view.m+1);
+  if(br)h+='<h2>Presupuestos de '+MONTHS[view.m]+'</h2>'+br;
+  h+='<h2>Pagos del periodo</h2>';
+  h+=s.du.length?'<div class="list">'+s.du.map(dueRow).join('')+'</div>':
+    '<div class="empty">No tienes pagos fijos ni cuotas en este periodo.<button class="btn block" data-act="tab" data-tab="pagos">Configurar pagos</button></div>';
+  const ents=Object.entries(s.cats).sort((a,b)=>b[1]-a[1]);
+  if(ents.length){const mx=ents[0][1];
+    h+='<h2>En qué se va</h2><div class="card bud">'+ents.map(e=>'<div class="r"><div class="l"><span>'+(EMO[e[0]]||'')+' '+esc(e[0])+'</span><b class="num">'+money0(e[1])+'</b></div><div class="pbar"><i style="width:'+(e[1]/mx*100)+'%;background:var(--out)"></i></div></div>').join('')+'</div>';}
+  return h;
+}
+function groupByDate(list){const g={};list.forEach(x=>{(g[x.date]=g[x.date]||[]).push(x);});return Object.keys(g).sort().reverse().map(d=>({date:d,items:g[d]}));}
+const longDate=s=>cap(new Date(s+'T00:00:00').toLocaleDateString('es-PE',{weekday:'long',day:'numeric',month:'long'}));
+function vMovs(){
+  const s=summary(),g=view.mov==='gastos';
+  let h=periodBar()+'<div class="seg" role="group" aria-label="Tipo de movimiento" style="margin-top:10px"><button data-act="mov" data-v="gastos" aria-pressed="'+g+'">Gastos</button><button data-act="mov" data-v="ingresos" aria-pressed="'+(!g)+'">Ingresos</button></div>';
+  if(g){
+    const used=CATS.filter(c=>s.tx.some(t=>t.cat===c));
+    if(view.cat&&!used.includes(view.cat))view.cat='';
+    const list=view.cat?s.tx.filter(t=>t.cat===view.cat):s.tx;
+    h+='<div class="c" style="margin-top:16px"><div class="muted">'+(view.cat?'Gastos en '+esc(view.cat):'Gastos diarios del periodo')+'</div><div class="amount mid">'+money(sum(list,x=>x.amount))+'</div></div>';
+    if(used.length>1)h+='<div class="chips" style="margin-top:8px">'+['',...used].map(c=>'<label><input type="radio" name="fcat" data-act="fcat" value="'+c+'"'+(view.cat===c?' checked':'')+'><span>'+(c?EMO[c]+' '+c:'Todas')+'</span></label>').join('')+'</div>';
+    if(!list.length)return h+'<div class="empty" style="margin-top:14px">Aún no hay gastos en este periodo. Toca + para registrar el primero.</div>';
+    groupByDate(list).forEach(gr=>{
+      h+='<div class="gh"><span>'+longDate(gr.date)+'</span><b class="num">'+money(sum(gr.items,x=>x.amount))+'</b></div><div class="list">'+
+        gr.items.map(t=>'<button class="row" data-act="edit-tx" data-id="'+t.id+'"><div class="emo">'+(t.sub?SUBEMO[t.sub]||EMO[t.cat]:EMO[t.cat]||'📦')+'</div><div class="grow"><div class="t">'+esc(t.note||t.sub||t.cat)+'</div><div class="s">'+esc(t.cat+(t.sub?', '+t.sub.toLowerCase():''))+'</div></div><div class="amt">'+money(t.amount)+'</div></button>').join('')+'</div>';
+    });
+    return h;
+  }
+  h+='<div class="c" style="margin-top:16px"><div class="muted">Ingresos netos del periodo</div><div class="amount mid">'+money(s.ingresos)+'</div></div>';
+  if(!s.inc.length)return h+'<div class="empty" style="margin-top:14px">Aún no registras ingresos en este periodo. Toca + para agregar tu sueldo o quincena.</div>';
+  h+='<div class="list" style="margin-top:14px">'+s.inc.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(i=>{
+    const desc=(i.afp||i.other)?'bruto '+money0(i.gross)+', AFP y descuentos '+money0(i.afp+i.other):'';
+    return '<button class="row" data-act="edit-inc" data-id="'+i.id+'"><div class="emo">'+(i.kind==='extra'?'💵':'💼')+'</div><div class="grow"><div class="t">'+esc(i.concept||KINDS[i.kind]||'Ingreso')+'</div><div class="s">'+dfmt(i.date)+(desc?', '+esc(desc):'')+'</div></div><div class="amt in">'+money(i.net)+'</div></button>';
+  }).join('')+'</div>';
+  return h;
+}
+function vPagos(){
+  const t=new Date(),y=t.getFullYear(),m=t.getMonth()+1;
+  const mtot=sum(dues(y+'-'+pad(m)+'-01',y+'-'+pad(m)+'-'+pad(dim1(y,m))),d=>d.amount);
+  let h='<div class="c" style="margin-top:14px"><div class="muted">Pagos programados de '+MONTHS[m-1]+'</div><div class="amount mid">'+money(mtot)+'</div></div>';
+  h+='<div class="sec-h"><h2>Gastos fijos</h2><button class="btn small" data-act="add-fijo">Agregar</button></div>';
+  h+=S.fixed.length?'<div class="list">'+S.fixed.map(f=>{
+    const ms=(f.months&&f.months.length)?'solo '+f.months.map(x=>MON3[x-1]).join(', '):'cada mes';
+    return '<button class="row" data-act="it-open" data-t="f" data-id="'+f.id+'"><div class="emo">'+(EMO[f.cat]||'📌')+'</div><div class="grow"><div class="t">'+esc(f.name)+'</div><div class="s">'+cap(ms)+', día '+f.day+nextChange(f)+(f.active===false?'. En pausa':'')+'</div></div><div class="amt">'+money(amountFor(f,ymNow()))+'</div></button>';
+  }).join('')+'</div>':'<div class="empty">Agrega universidad, celular, alquiler y todo lo que pagas cada mes.</div>';
+  h+='<div class="sec-h"><h2>Cuotas y pagos únicos</h2><button class="btn small" data-act="add-cuota">Agregar</button></div>';
+  h+=S.inst.length?'<div class="list">'+S.inst.map(c=>{
+    const pc=Object.keys(S.paid).filter(k=>k.indexOf('c:'+c.id+':')===0).length,rest=Math.max(0,c.total-pc)*c.amount;
+    let sub;
+    if(c.total===1){const due=c.start+'-'+pad(Math.min(c.day,dim1(+c.start.slice(0,4),+c.start.slice(5,7))));sub=(pc?'Pagado':'Pago único el '+dfmtY(due));}
+    else sub=pc+' de '+c.total+' pagadas, quedan '+money0(rest)+', día '+c.day+((c.months&&c.months.length)?', solo '+c.months.map(x=>MON3[x-1]).join(', '):'');
+    return '<button class="row" data-act="it-open" data-t="c" data-id="'+c.id+'"><div class="emo">'+(EMO[c.cat]||'📌')+'</div><div class="grow"><div class="t">'+esc(c.name)+'</div><div class="s">'+esc(sub)+nextChange(c)+'</div></div><div class="amt">'+money(c.total===1?amountFor(c,c.start):amountFor(c,ymNow()))+'</div></button>';
+  }).join('')+'</div>':'<div class="empty">Agrega cuotas (préstamos, tarjeta) o pagos únicos como el adelanto de cursos.</div>';
+  return h;
+}
+function nextChange(it){
+  const now=ymNow(),h=(it.hist||[]).filter(x=>x.from>now).sort((a,b)=>a.from.localeCompare(b.from))[0];
+  const ov=Object.keys(it.over||{}).filter(k=>k>=now).length;
+  return (h?'. Desde '+MON3[+h.from.slice(5,7)-1]+': '+money0(h.amount):'')+(ov?'. '+ov+(ov===1?' mes':' meses')+' con monto distinto':'');
+}
+function vAhorro(){
+  const liq=liquid(),cts=ctsBal(),fl=S.set.floor||0;
+  let h='<div class="c" style="margin-top:14px"><div class="muted">Tu ahorro disponible</div><div class="amount" style="margin-bottom:6px">'+money(liq)+'</div>'+
+    '<div class="muted">CTS '+money0(cts)+'. Total '+money0(liq+cts)+'.</div></div>';
+  if(fl){const ok=liq>=fl;
+    h+='<div class="card"><div class="bud"><div class="r"><div class="l"><span>🛡️ Piso de seguridad</span><b class="num">'+money0(fl)+'</b></div>'+
+      '<div class="pbar '+(ok?'sv':'warn')+'"><i style="width:'+Math.min(100,fl?liq/fl*100:0)+'%"></i></div>'+
+      '<div class="sub">'+(ok?'Estás '+money0(liq-fl)+' por encima. No toques esta parte para salidas.':'Te faltan '+money0(fl-liq)+'. Hasta llegar, prioriza el ahorro antes que las salidas.')+'</div></div></div></div>';}
+  h+='<div class="btns"><button class="btn save" data-act="mv-new" data-v="aporte">Apartar</button><button class="btn" data-act="mv-new" data-v="retiro">Retirar</button></div>';
+  h+='<div class="sec-h"><h2>Bolsillos y metas</h2><button class="btn small" data-act="pk-new">Nuevo</button></div>';
+  if(!S.pockets.length)return h+'<div class="empty">Crea un bolsillo para tu ahorro, tu CTS o una meta como el adelanto de la UPC.</div>';
+  S.pockets.forEach(p=>{
+    const bal=pocketBal(p.id),mn=metaNeed(p);let extra='';
+    if(mn){
+      extra='<div class="pbar sv"><i style="width:'+mn.pct+'%"></i></div><div class="s" style="margin-top:6px">'+
+        (mn.falta<=0?'Meta cumplida':'Faltan '+money0(mn.falta)+(mn.perMonth!=null?(mn.xs.length?'. Contando '+mn.xs.map(x=>x.name.toLowerCase()).join(' y ')+', ':'. ')+(mn.perMonth>0?'aparta '+money0(Math.ceil(mn.perMonth))+' al mes hasta el '+dfmtY(p.deadline):'ya te alcanza si guardas ese dinero'):''))+'</div>';
+    }else if(p.kind==='cts')extra='<div class="s">Fondo intangible. No lo cuentes para gastos del mes.</div>';
+    h+='<button class="pocket" data-act="pk-open" data-id="'+p.id+'"><div class="hd"><div class="emo">'+esc(p.emoji||'💰')+'</div><div class="grow"><div class="t">'+esc(p.name)+'</div><div class="s">'+PKINDS[p.kind]+(mn?', meta '+money0(p.target):'')+'</div></div><div class="amt sv">'+money0(bal)+'</div></div>'+extra+'</button>';
+  });
+  return h;
+}
+function vPlan(){
+  if(!S.set.gross)return '<div class="card welcome" style="margin-top:20px"><h3>Primero, tu sueldo</h3><p>El plan necesita tu sueldo, AFP y pagos fijos para proyectar tu ahorro mes a mes.</p><button class="btn primary block" data-act="wizard">Armar mi plan</button></div>';
+  if(!P)planInit();
+  const sl=(k,label,min,max,step,fmt)=>'<div class="sl"><div class="l"><span>'+label+'</span><b id="pv-'+k+'">'+fmt(P[k])+'</b></div><input type="range" data-p="'+k+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+P[k]+'" aria-label="'+label+'"></div>';
+  let h='<div class="sticky" id="plan-sticky">'+planSticky()+'</div>';
+  h+='<div class="card" style="margin-top:4px"><h3>Mueve tu plan</h3><p>Los cambios se ven al instante. Guarda cuando te guste el resultado.</p>'+
+    sl('pareja','❤️ Salidas con tu pareja al mes',0,1200,10,money0)+
+    sl('foodDays','🍽️ Días que comes afuera',0,30,1,v=>v+' días')+
+    sl('foodCost','Costo por día afuera',5,40,1,money0)+
+    sl('otherVar','📦 Otros gastos e imprevistos',0,1000,10,money0)+
+    sl('save','🎯 Tu meta de ahorro al mes',0,2000,10,money0)+
+    '<div class="btns"><button class="btn primary" data-act="plan-save">Guardar plan</button><button class="btn" data-act="plan-reset">Deshacer</button></div></div>';
+  h+='<div id="plan-dyn">'+planDyn()+'</div>';
+  h+='<div class="sec-h"><h2>Ingresos extra que vienen</h2><button class="btn small" data-act="x-new">Agregar</button></div>';
+  const xs=S.extras.filter(x=>!x.done).sort((a,b)=>a.date.localeCompare(b.date));
+  h+=xs.length?'<div class="list">'+xs.map(x=>{
+    const inc=P.incl[x.id]!==undefined?P.incl[x.id]:x.include;
+    return '<div class="row"><div class="emo">'+XEMO[x.kind]+'</div><button class="grow" style="text-align:left" data-act="x-edit" data-id="'+x.id+'"><div class="t">'+esc(x.name)+' <span class="tag '+(x.sure?'ok':'warn')+'">'+(x.sure?'seguro':'por confirmar')+'</span></div><div class="s">'+dfmtY(x.date)+', '+money0(x.amount)+(isCtsDest(x)?', va a tu CTS':'')+'</div></button>'+
+      '<label class="check" style="margin:0" title="Contar en el plan"><input type="checkbox" data-px="'+x.id+'"'+(inc?' checked':'')+' aria-label="Contar '+esc(x.name)+' en el plan"></label></div>';
+  }).join('')+'</div><p class="hint">Marca solo lo que estés seguro de recibir. Lo no marcado no se cuenta en la proyección.</p>':'<div class="empty">Agrega gratificación, CTS, utilidades u otros ingresos que esperas.</div>';
+  return h;
+}
+function planSticky(){
+  const tm=typicalMonth(P);
+  return '<div class="box"><span class="muted">En un mes normal te sobran</span><b class="'+(tm.sobra<0?'neg':'')+'">'+money0(tm.sobra)+'</b></div>';
+}
+function planDyn(){
+  const tm=typicalMonth(P),pr=project(P),fl=S.set.floor||0;
+  const base=Math.max(tm.salary,tm.fijos+tm.pareja+tm.food+tm.otros,1),w=v=>Math.max(0,v)/base*100;
+  let h='<h2>Un mes normal</h2><div class="card"><div class="stack" role="img" aria-label="Distribución del sueldo neto">'+
+    '<i class="k-p" style="width:'+w(tm.fijos)+'%"></i><i class="k-g" style="width:'+w(tm.pareja)+'%"></i><i class="k-c" style="width:'+w(tm.food)+'%"></i><i class="k-o" style="width:'+w(tm.otros)+'%"></i><i class="k-d" style="width:'+w(tm.sobra)+'%"></i></div>'+
+    '<dl class="legend"><div><dt>Sueldo neto (después de AFP)</dt><dd>'+money0(tm.salary)+'</dd></div>'+
+    '<div><dt><b class="sw k-p"></b>Pagos fijos</dt><dd>-'+money0(tm.fijos)+'</dd></div>'+
+    '<div><dt><b class="sw k-g"></b>Pareja</dt><dd>-'+money0(tm.pareja)+'</dd></div>'+
+    '<div><dt><b class="sw k-c"></b>Comida afuera</dt><dd>-'+money0(tm.food)+'</dd></div>'+
+    '<div><dt><b class="sw k-o"></b>Otros e imprevistos</dt><dd>-'+money0(tm.otros)+'</dd></div>'+
+    '<div class="tot"><dt><b class="sw k-d"></b><b style="color:var(--ink)">Te sobra</b></dt><dd>'+money0(tm.sobra)+'</dd></div></dl></div>';
+  // consejos
+  const tips=[];
+  if(tm.sobra<0)tips.push(['bad','⚠️','Con este plan gastas '+money0(-tm.sobra)+' más de lo que ganas cada mes. Baja las salidas o la comida afuera.']);
+  else if(P.save>tm.sobra)tips.push(['warn','🎯','Tu meta de ahorrar '+money0(P.save)+' al mes no alcanza: te sobran '+money0(tm.sobra)+'. Baja '+money0(P.save-tm.sobra)+' en salidas o ajusta la meta.']);
+  else if(P.save>0)tips.push(['ok','✅','Tu meta de '+money0(P.save)+' al mes sí alcanza y te quedan '+money0(tm.sobra-P.save)+' de margen.']);
+  if(fl){
+    const nowL=liquid(),reach=nowL>=fl?-1:pr.findIndex(x=>x.bal>=fl);
+    if(nowL<fl){
+      if(reach>=0)tips.push(['warn','🛡️','Hoy tienes '+money0(nowL)+', debajo de tu piso de '+money0(fl)+'. Con este plan lo alcanzas en '+MONTHS[pr[reach].m-1]+'. Hasta entonces, prioriza el ahorro.']);
+      else tips.push(['bad','🛡️','Con este plan no llegas a tu piso de '+money0(fl)+' en 12 meses. Baja gastos o sube tu meta de ahorro.']);
+    }
+    const startI=nowL>=fl?0:reach;
+    if(startI>=0){
+      let minI=startI;for(let i=startI;i<pr.length;i++)if(pr[i].bal<pr[minI].bal)minI=i;
+      const low=pr[minI];
+      if(low.bal<fl){
+        const first=pr.findIndex((x,i)=>i>=startI&&x.bal<fl),need=fl-low.bal;
+        tips.push(['bad','📉','En '+MONTHS[pr[first].m-1]+' tu ahorro vuelve a bajar de tu piso (llega a '+money0(low.bal)+' en '+MONTHS[low.m-1]+'). Para evitarlo, gasta '+money0(Math.ceil(need/(minI+1)))+' menos al mes desde ahora.']);
+      }else if(nowL>=fl)tips.push(['ok','🛡️','Tu ahorro nunca baja de tu piso. El punto más bajo es '+MONTHS[low.m-1]+' con '+money0(low.bal)+'.']);
+      else tips.push(['ok','✅','Una vez que llegues a tu piso, ya no vuelves a bajar de él.']);
+    }
+  }
+  const big=pr.map(x=>x.du.filter(d=>d.once)).flat();
+  big.forEach(d=>{const i=pr.findIndex(x=>x.du.includes(d)),before=i>0?pr[i-1].bal:liquid();
+    tips.push([before>=d.amount?'ok':'warn','🎓','Para '+d.name+' ('+money0(d.amount)+' el '+dfmtY(d.due)+') llegarías con unos '+money0(before)+(before>=d.amount?'. Te alcanza.':'. Te faltarían '+money0(d.amount-before)+'.')]);});
+  const last=pr[pr.length-1];
+  tips.push(['ok','📈','En '+MONTHS[last.m-1]+' de '+last.y+' tendrías unos '+money0(last.bal)+' de ahorro, más '+money0(last.cts)+' de CTS.']);
+  h+='<h2>Qué dice tu plan</h2>'+tips.map(t=>'<div class="tip '+(t[0]==='ok'?'':t[0])+'"><span class="ti">'+t[1]+'</span><span>'+esc(t[2])+'</span></div>').join('');
+  // gráfico
+  h+='<h2>Tu ahorro en los próximos 12 meses</h2><div class="card" style="padding:10px 6px 6px">'+chartSVG(pr,fl,P.sel)+'</div>';
+  h+='<p class="hint">Toca un mes para ver el detalle.</p>';
+  if(P.sel!=null&&pr[P.sel]){
+    const x=pr[P.sel];
+    h+='<div class="list detail"><div class="row"><div class="grow"><div class="t">'+cap(MONTHS[x.m-1])+' '+x.y+'</div></div><div class="amt sv">'+money0(x.bal)+'</div></div>'+
+      '<div class="row"><div class="grow s">Sueldo neto</div><div class="amt in">+'+money0(x.salary)+'</div></div>'+
+      x.ex.map(e=>'<div class="row"><div class="grow s">'+XEMO[e.kind]+' '+esc(e.name)+(isCtsDest(e)?' (a tu CTS)':'')+'</div><div class="amt in">+'+money0(e.amount)+'</div></div>').join('')+
+      x.du.map(d=>'<div class="row"><div class="grow s">'+(EMO[d.cat]||'')+' '+esc(d.name)+'</div><div class="amt">-'+money0(d.amount)+'</div></div>').join('')+
+      '<div class="row"><div class="grow s">Pareja, comida afuera y otros</div><div class="amt">-'+money0(x.varT)+'</div></div>'+
+      '<div class="row"><div class="grow"><b>Sobra en el mes</b></div><div class="amt'+(x.sobra<0?'" style="color:var(--bad)':' in')+'">'+money0(x.sobra)+'</div></div></div>';
+  }
+  return h;
+}
+function chartSVG(pr,fl,sel){
+  const W=340,H=200,pl=10,pr2=10,pt=22,pb=26;
+  const vals=pr.map(x=>x.bal),mx=Math.max(...vals,fl,1)*1.08,mn=Math.min(0,...vals);
+  const X=i=>pl+(W-pl-pr2)*i/(pr.length-1),Y=v=>pt+(H-pt-pb)*(1-(v-mn)/((mx-mn)||1));
+  const line=pr.map((x,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(x.bal).toFixed(1)).join(' ');
+  const area=line+' L'+X(pr.length-1).toFixed(1)+' '+Y(mn)+' L'+X(0)+' '+Y(mn)+' Z';
+  let s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Proyección de ahorro a 12 meses">';
+  s+='<path d="'+area+'" fill="var(--save)" opacity=".12"/>';
+  if(mn<0)s+='<line x1="'+pl+'" x2="'+(W-pr2)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="var(--line)"/>';
+  if(fl){s+='<line x1="'+pl+'" x2="'+(W-pr2)+'" y1="'+Y(fl)+'" y2="'+Y(fl)+'" stroke="var(--warn-fill)" stroke-width="1.5" stroke-dasharray="5 4"/>'+
+    '<text x="'+(W-pr2)+'" y="'+(Y(fl)-4)+'" text-anchor="end" style="fill:var(--warn)">piso '+kfmt(fl)+'</text>';}
+  if(sel!=null)s+='<line x1="'+X(sel)+'" x2="'+X(sel)+'" y1="'+pt+'" y2="'+(H-pb)+'" stroke="var(--muted)" stroke-dasharray="2 3"/>';
+  s+='<path d="'+line+'" fill="none" stroke="var(--save)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  pr.forEach((x,i)=>{
+    const below=fl&&x.bal<fl,cx=X(i),cy=Y(x.bal);
+    s+='<circle cx="'+cx+'" cy="'+cy+'" r="'+(sel===i?6:4)+'" fill="'+(below?'var(--bad)':'var(--save)')+'" stroke="var(--card)" stroke-width="2"/>';
+    if(sel===i||i===0||i===pr.length-1)s+='<text class="lbl" x="'+Math.min(W-14,Math.max(14,cx))+'" y="'+(cy-10)+'" text-anchor="middle">'+kfmt(x.bal)+'</text>';
+    s+='<text x="'+cx+'" y="'+(H-8)+'" text-anchor="middle">'+MON3[x.m-1]+'</text>';
+    s+='<rect x="'+(cx-13)+'" y="0" width="26" height="'+H+'" fill="transparent" data-act="pt" data-i="'+i+'" style="cursor:pointer"/>';
+  });
+  return s+'</svg>';
+}
+function vAjustes(){
+  const st=S.set,bk=st.lastBackup?'Último respaldo: '+dfmt(st.lastBackup)+'.':'Todavía no has hecho un respaldo.';
+  return '<div class="top"><button class="back-btn" data-act="tab" data-tab="resumen">‹ Volver</button><div class="brand">Ajustes</div><span style="width:60px"></span></div><div class="ajustes">'+
+    '<h2>Tu plan</h2><p>Vuelve a pasar por el asistente cuando cambie tu sueldo, tus pagos o tus metas.</p><button class="btn primary block" data-act="wizard">Asistente del plan</button>'+
+    '<div class="list" style="margin-top:12px">'+
+    '<button class="row" data-act="set-sueldo"><div class="emo">💼</div><div class="grow"><div class="t">Sueldo y cobro</div><div class="s">'+(st.gross?money0(st.gross)+' bruto, AFP '+st.afpPct+'%, '+(st.payMode==='quincenal'?'quincenal':'mensual'):'Sin configurar')+'</div></div></button>'+
+    '<button class="row" data-act="set-ahorro"><div class="emo">🛡️</div><div class="grow"><div class="t">Piso y meta de ahorro</div><div class="s">Piso '+money0(st.floor||0)+', meta '+money0(st.saveMonthly||0)+' al mes</div></div></button>'+
+    '<button class="row" data-act="set-budgets"><div class="emo">📊</div><div class="grow"><div class="t">Presupuestos por categoría</div><div class="s">'+(Object.values(S.budgets).filter(v=>num(v)>0).length||'Ningún')+' presupuesto(s) activo(s)</div></div></button></div>'+
+    '<h2>Respaldo</h2><p>Tus datos se guardan solo en este dispositivo. Exporta un respaldo y guárdalo en tu nube. '+bk+'</p>'+
+    '<button class="btn block" data-act="export-json">Exportar respaldo (JSON)</button>'+
+    '<button class="btn block" data-act="import-json">Importar respaldo</button>'+
+    '<button class="btn block" data-act="export-csv">Exportar a Excel (CSV)</button>'+
+    '<h2>Instalar la app</h2><p>En Android (Chrome): menú ⋮ y luego Instalar app. En iPhone (Safari): Compartir y luego Agregar a inicio.</p>'+
+    '<h2>Borrar datos</h2><button class="btn block danger" data-act="wipe">Borrar todos mis datos</button>'+
+    '<p class="c" style="margin-top:24px">Mi Plata v3</p></div>';
+}
+function render(){
+  const fn={resumen:vResumen,movs:vMovs,pagos:vPagos,ahorro:vAhorro,plan:vPlan,ajustes:vAjustes}[view.tab];
+  $('#main').innerHTML=fn();
+  document.querySelectorAll('.tabbar button').forEach(b=>b.setAttribute('aria-current',b.dataset.tab===view.tab?'page':'false'));
+  const fab=$('#fab'),show=['resumen','movs'].includes(view.tab);fab.hidden=!show;
+  fab.setAttribute('aria-label',view.tab==='movs'&&view.mov==='ingresos'?'Registrar ingreso':'Registrar gasto');
+}
+
+/* ================= Hojas ================= */
+function sheet(title,body,o){
+  o=o||{};const el=$('#sheet');
+  const footer=o.footer!=null?o.footer:'<div class="actions">'+(o.onDelete?'<button type="button" class="btn danger" id="sdel">'+(o.delLabel||'Eliminar')+'</button>':'')+
+    (o.cancel?'<button type="button" class="btn" data-act="close">'+o.cancel+'</button>':'')+
+    '<button class="btn '+(o.saveStyle||'primary')+'" type="submit">'+(o.submit||'Guardar')+'</button></div>';
+  el.innerHTML='<div class="back" data-act="close"></div><form class="panel" autocomplete="off"><div class="grab"></div><h2>'+esc(title)+'</h2>'+body+footer+'</form>';
+  el.hidden=false;document.body.classList.add('lock');
+  const f=el.querySelector('form');
+  f.onsubmit=e=>{e.preventDefault();if(!o.onSubmit)return;const fd=new FormData(f);if(o.onSubmit(Object.fromEntries(fd),fd)!==false)closeSheet();};
+  if(o.onDelete)$('#sdel').onclick=()=>{if(confirm(o.delMsg||'¿Eliminar este registro?')){o.onDelete();closeSheet();}};
+  if(o.onInput){f.addEventListener('input',()=>o.onInput(f));f.addEventListener('change',()=>o.onInput(f));o.onInput(f);}
+  const first=f.querySelector('[autofocus]');if(first)setTimeout(()=>first.focus(),60);
+}
+function closeSheet(){const el=$('#sheet');el.hidden=true;el.innerHTML='';document.body.classList.remove('lock');}
+const later=fn=>setTimeout(fn,30);
+const chips=(name,val,list,emo)=>'<div class="chips">'+list.map(c=>'<label><input type="radio" name="'+name+'" value="'+esc(c)+'"'+(c===val?' checked':'')+'><span>'+(emo&&emo[c]?emo[c]+' ':'')+esc(c)+'</span></label>').join('')+'</div>';
+const monthChips=(sel)=>'<div class="chips">'+MON3.map((n,k)=>'<label><input type="checkbox" name="mes" value="'+(k+1)+'"'+((sel||[]).includes(k+1)?' checked':'')+'><span>'+n+'</span></label>').join('')+'</div>';
+const field=(label,name,val,extra)=>'<label><span>'+label+'</span><input name="'+name+'" value="'+esc(val)+'" '+(extra||'')+'></label>';
+const quick=vals=>'<div class="qa">'+vals.map(v=>'<button type="button" data-act="qa" data-v="'+v+'">'+v+'</button>').join('')+'</div>';
+
+function budgetToast(cat,date){
+  const lim=num(S.budgets[cat]);if(!lim)return '';
+  const y=+date.slice(0,4),m=+date.slice(5,7),sp=sum(monthSpent(cat,y,m),t=>t.amount);
+  return sp>lim?'. Te pasaste del presupuesto de '+cat+' por '+money0(sp-lim):'. Llevas '+money0(sp)+' de '+money0(lim)+' en '+cat;
+}
+function gastoForm(t){
+  const edit=!!t;t=t||{date:todayStr(),cat:'Comida'};
+  sheet(edit?'Editar gasto':'Nuevo gasto',
+    '<label class="big"><span>Monto (S/)</span><input name="amount" inputmode="decimal" placeholder="0.00" value="'+(edit?t.amount:'')+'" required autofocus></label>'+quick([10,20,50,100])+
+    '<div class="lbl">Categoría</div>'+chips('cat',t.cat,CATS,EMO)+
+    '<div id="subwrap"><div class="lbl">¿En qué fue?</div>'+chips('sub',t.sub||'Comida',SUBS.Pareja,SUBEMO)+'</div>'+
+    field('Nota','note',t.note||'','maxlength="80" placeholder="Almuerzo, taxi, cine…"')+
+    field('Fecha','date',t.date,'type="date" required'),
+    {onInput:f=>{const c=f.querySelector('[name=cat]:checked');$('#subwrap').hidden=!(c&&SUBS[c.value]);},
+     onSubmit:fd=>{
+      const a=num(fd.amount);if(a<=0){toast('Ingresa un monto mayor a 0');return false;}
+      const r={id:t.id||uid(),amount:a,cat:fd.cat||'Otros',note:(fd.note||'').trim(),date:fd.date};
+      if(SUBS[r.cat])r.sub=fd.sub||'Otros';
+      upsert(S.tx,r);goTo(r.date);commit((edit?'Gasto actualizado':'Gasto guardado')+budgetToast(r.cat,r.date));
+    },onDelete:edit?()=>{remove(S.tx,t.id);commit('Gasto eliminado');}:null});
+}
+function ingresoForm(i){
+  const edit=!!i;
+  i=i||{date:todayStr(),kind:S.set.payMode==='quincenal'?'quincena':'sueldo',gross:S.set.gross?(S.set.payMode==='quincenal'?S.set.gross/2:S.set.gross):'',afp:'',other:0};
+  if(!edit&&i.gross)i.afp=Math.round(i.gross*S.set.afpPct)/100;
+  sheet(edit?'Editar ingreso':'Nuevo ingreso',
+    '<div class="lbl">Tipo</div>'+'<div class="chips">'+Object.keys(KINDS).map(k=>'<label><input type="radio" name="kind" value="'+k+'"'+(k===i.kind?' checked':'')+'><span>'+KINDS[k]+'</span></label>').join('')+'</div>'+
+    '<label class="big"><span>Monto bruto (S/)</span><input name="gross" inputmode="decimal" placeholder="0.00" value="'+(i.gross||'')+'" required autofocus></label>'+
+    '<div class="two">'+field('Descuento AFP','afp',i.afp||'','inputmode="decimal" placeholder="0.00"')+field('Otros descuentos','other',i.other||'','inputmode="decimal" placeholder="0.00"')+'</div>'+
+    '<div class="net"><span>Neto que recibes</span><span id="netv" class="num">S/ 0.00</span></div>'+
+    field('Concepto (opcional)','concept',i.concept||'','maxlength="60" placeholder="Sueldo de octubre"')+
+    field('Fecha en que lo recibes','date',i.date,'type="date" required'),
+    {onInput:f=>{const e=f.elements;$('#netv').textContent=money(num(e.gross.value)-num(e.afp.value)-num(e.other.value));},
+     onSubmit:fd=>{
+      const g=num(fd.gross),a=num(fd.afp),o=num(fd.other);
+      if(g<=0){toast('Ingresa el monto bruto');return false;}
+      if(g-a-o<0){toast('Los descuentos superan al monto');return false;}
+      const r={id:i.id||uid(),kind:fd.kind||'sueldo',gross:g,afp:a,other:o,net:Math.round((g-a-o)*100)/100,concept:(fd.concept||'').trim(),date:fd.date};
+      upsert(S.income,r);goTo(r.date);commit(edit?'Ingreso actualizado':'Ingreso guardado');
+      if(!edit){
+        let sug=0;
+        if(r.kind==='extra')sug=Math.round(r.net*0.8);
+        else if(S.set.saveMonthly>0)sug=r.kind==='quincena'||S.set.payMode==='quincenal'?S.set.saveMonthly/2:S.set.saveMonthly;
+        if(sug>0)later(()=>payFirst(Math.min(sug,r.net),r.kind==='extra'?'Es un ingreso extra: guarda la mayor parte antes de que se vaya en salidas.':'Acabas de cobrar. Aparta tu ahorro antes de gastar.'));
+      }
+    },onDelete:edit?()=>{remove(S.income,i.id);commit('Ingreso eliminado');}:null});
+}
+function pocketChips(sel,inclCts){
+  const ps=S.pockets.filter(p=>inclCts||p.kind!=='cts');
+  if(!ps.length)return '<p class="hint" style="margin:-4px 0 12px">Se creará un bolsillo llamado Ahorro.</p>';
+  if(!sel||!ps.some(p=>p.id===sel))sel=ps[0].id;
+  return '<div class="lbl">Bolsillo</div><div class="chips">'+ps.map(p=>'<label><input type="radio" name="pid" value="'+p.id+'"'+(p.id===sel?' checked':'')+'><span>'+esc((p.emoji||'💰')+' '+p.name)+'</span></label>').join('')+'</div>';
+}
+function payFirst(amount,lead){
+  sheet('Págate primero','<p class="lead">'+esc(lead)+'</p>'+
+    '<label class="big"><span>Monto a apartar (S/)</span><input name="amount" inputmode="decimal" value="'+Math.round(amount*100)/100+'" required></label>'+pocketChips(null,false),
+    {submit:'Apartar',saveStyle:'save',cancel:'Ahora no',onSubmit:fd=>{
+      const a=num(fd.amount);if(a<=0){toast('Ingresa un monto');return false;}
+      const pid=fd.pid||defaultPocket().id;addMove(pid,'aporte',a,'Págate primero');
+      commit('Apartaste '+money0(a)+'. Bien hecho');
+    }});
+}
+function moveForm(type,pid){
+  const ap=type==='aporte';
+  sheet(ap?'Apartar para ahorro':'Retirar del ahorro',
+    '<p class="lead">'+(ap?'Sale de lo que te queda en el periodo y entra a tu bolsillo.':'Sale del bolsillo y vuelve a lo que puedes gastar en el periodo.')+'</p>'+
+    '<label class="big"><span>Monto (S/)</span><input name="amount" inputmode="decimal" placeholder="0.00" required autofocus></label>'+
+    (pid?'<input type="hidden" name="pid" value="'+pid+'">':pocketChips(null,!ap))+
+    field('Nota','note','','maxlength="60" placeholder="'+(ap?'Ahorro de la quincena':'Para el adelanto de la UPC')+'"')+
+    field('Fecha','date',todayStr(),'type="date" required'),
+    {submit:ap?'Apartar':'Retirar',saveStyle:ap?'save':'primary',onSubmit:fd=>{
+      const a=num(fd.amount);if(a<=0){toast('Ingresa un monto');return false;}
+      const id=fd.pid||defaultPocket().id;
+      if(!ap&&a>pocketBal(id)+0.001){toast('No tienes tanto en ese bolsillo');return false;}
+      addMove(id,type,a,(fd.note||'').trim(),fd.date);
+      if(!ap&&liquid()<(S.set.floor||0))commit('Retiraste '+money0(a)+'. Ojo: quedaste debajo de tu piso');
+      else commit(ap?'Apartaste '+money0(a):'Retiraste '+money0(a));
+    }});
+}
+function pocketForm(p){
+  const edit=!!p;p=p||{kind:'ahorro',emoji:'💰'};
+  sheet(edit?'Editar bolsillo':'Nuevo bolsillo',
+    field('Nombre','name',p.name||'','maxlength="30" placeholder="Fondo de emergencia, Adelanto UPC…" required autofocus')+
+    '<div class="lbl">Ícono</div>'+chips('emoji',p.emoji,PEMO)+
+    '<div class="lbl">Tipo</div><div class="chips">'+Object.keys(PKINDS).map(k=>'<label><input type="radio" name="kind" value="'+k+'"'+(k===p.kind?' checked':'')+'><span>'+PKINDS[k]+'</span></label>').join('')+'</div>'+
+    '<div id="metaw" class="two">'+field('Meta (S/)','target',p.target||'','inputmode="decimal" placeholder="3000"')+field('Para cuándo','deadline',p.deadline||'','type="date"')+'</div>'+
+    (edit?'':field('Saldo que ya tienes (S/)','initial','','inputmode="decimal" placeholder="0.00"')),
+    {onInput:f=>{const k=f.querySelector('[name=kind]:checked');$('#metaw').hidden=!(k&&k.value==='meta');},
+     onSubmit:fd=>{
+      if(!fd.name.trim()){toast('Ponle un nombre');return false;}
+      if(fd.kind==='meta'&&num(fd.target)<=0){toast('Indica el monto de la meta');return false;}
+      const r=Object.assign({},p,{id:p.id||uid(),name:fd.name.trim(),emoji:fd.emoji||'💰',kind:fd.kind||'ahorro',target:fd.kind==='meta'?num(fd.target):0,deadline:fd.kind==='meta'?fd.deadline:'',created:p.created||todayStr()});
+      upsert(S.pockets,r);if(!edit&&num(fd.initial))setBalance(r.id,num(fd.initial));
+      commit(edit?'Bolsillo actualizado':'Bolsillo creado');
+    },onDelete:edit?()=>{remove(S.pockets,p.id);S.moves=S.moves.filter(m=>m.pocketId!==p.id);S.extras.forEach(x=>{if(x.dest===p.id)x.dest='disponible';});commit('Bolsillo eliminado');}:null,
+     delMsg:'Se eliminará el bolsillo y su historial. ¿Continuar?'});
+}
+function pocketDetail(p){
+  const bal=pocketBal(p.id),mn=metaNeed(p),mv=S.moves.filter(m=>m.pocketId===p.id).sort((a,b)=>b.date.localeCompare(a.date));
+  let body='<div class="c"><div class="amount mid" style="color:var(--save)">'+money(bal)+'</div><div class="muted">'+PKINDS[p.kind]+'</div></div>';
+  if(mn)body+='<div class="card"><div class="bud"><div class="r"><div class="l"><span>🎯 Meta '+money0(p.target)+'</span><b>'+Math.round(mn.pct)+'%</b></div><div class="pbar sv"><i style="width:'+mn.pct+'%"></i></div>'+
+    '<div class="sub">'+(mn.falta<=0?'¡Meta cumplida!':'Faltan '+money0(mn.falta)+(mn.perMonth!=null?'. Tienes '+mn.ml+(mn.ml===1?' mes':' meses')+' hasta el '+dfmtY(p.deadline)+(mn.xs.length?' y cuentas con '+mn.xs.map(x=>x.name.toLowerCase()+' ('+money0(x.amount)+')').join(' y '):'')+'. '+(mn.perMonth>0?'Aparta '+money0(Math.ceil(mn.perMonth))+' al mes ('+money0(Math.ceil(mn.perMonth/2))+' por quincena).':'Si guardas ese dinero aquí, ya te alcanza.'):''))+'</div></div></div></div>';
+  body+='<div class="btns"><button type="button" class="btn save" data-act="mv-new" data-v="aporte" data-id="'+p.id+'">Apartar</button><button type="button" class="btn" data-act="mv-new" data-v="retiro" data-id="'+p.id+'">Retirar</button></div>';
+  body+='<h2>Historial</h2>'+(mv.length?'<div class="list mvlist">'+mv.slice(0,30).map(m=>{
+    const sign=m.type==='retiro'?-m.amount:m.amount,lbl={aporte:'Apartado',retiro:'Retirado',ajuste:'Ajuste'}[m.type];
+    return '<button type="button" class="row" data-act="mv-del" data-id="'+m.id+'"><div class="grow"><div class="t">'+esc(m.note||lbl)+'</div><div class="s">'+lbl+', '+dfmt(m.date)+'</div></div><div class="amt '+(sign>=0?'sv':'')+'">'+(sign>=0?'+':'')+money0(sign)+'</div></button>';
+  }).join('')+'</div><p class="hint">Toca un movimiento para eliminarlo.</p>':'<div class="empty">Sin movimientos todavía.</div>');
+  sheet((p.emoji||'💰')+' '+p.name,body,{footer:'<div class="actions"><button type="button" class="btn" data-act="pk-edit" data-id="'+p.id+'">Editar</button><button type="button" class="btn primary" data-act="close">Listo</button></div>'});
+}
+const scopeHtml=edit=>edit?'<div class="grp"><div class="lbl">Si cambias el monto, ¿desde cuándo aplica?</div><div class="chips"><label><input type="radio" name="scope" value="desde" checked><span>Desde un mes</span></label><label><input type="radio" name="scope" value="todos"><span>Corregir todos los meses</span></label></div><div id="desdew">'+field('Desde el mes','desde',ymNow(),'type="month"')+'</div><p class="hint" style="margin:-4px 0 12px">Los pagos ya hechos conservan el monto que pagaste.</p></div>':'';
+function applyAmount(r,orig,a,fd,edit){
+  if(!edit){r.amount=a;return;}
+  r.amount=orig.amount;r.hist=(orig.hist||[]).slice();r.over=Object.assign({},orig.over||{});
+  if(fd.scope==='todos'){r.amount=a;r.hist=[];r.over={};return;}
+  const ym=fd.desde||ymNow();if(Math.abs(a-amountFor(r,ym))>0.004)setFrom(r,ym,a);
+}
+function fijoForm(f){
+  const edit=!!f;f=f||{start:ymNow(),cat:'Servicios',active:true,months:[]};
+  sheet(edit?'Editar gasto fijo':'Nuevo gasto fijo',
+    field('Nombre','name',f.name||'','maxlength="40" placeholder="UPC, celular, alquiler…" required autofocus')+
+    '<div class="two">'+field('Monto (S/)','amount',edit?amountFor(f,ymNow()):'','inputmode="decimal" placeholder="0.00" required')+field('Día de pago','day',f.day||'','type="number" min="1" max="31" inputmode="numeric" required')+'</div>'+scopeHtml(edit)+
+    '<div class="lbl">Categoría</div>'+chips('cat',f.cat,CATS,EMO)+
+    '<div class="lbl">Solo en estos meses (vacío = todos los meses)</div>'+monthChips(f.months)+
+    field('Empieza en el mes','start',f.start,'type="month" required')+
+    (edit?'<label class="check"><input type="checkbox" name="active"'+(f.active!==false?' checked':'')+'><span>Activo (desmárcalo para pausarlo)</span></label>':''),
+    {onInput:f2=>{const sc=f2.querySelector('[name=scope]:checked'),w=$('#desdew');if(w)w.hidden=!(sc&&sc.value==='desde');},
+     onSubmit:(fd,raw)=>{
+      const a=num(fd.amount),d=int(fd.day);
+      if(!fd.name.trim()||a<=0||!(d>=1&&d<=31)){toast('Revisa nombre, monto y día');return false;}
+      const r=Object.assign({},f,{id:f.id||uid(),name:fd.name.trim(),day:d,cat:fd.cat||'Otros',start:fd.start||ymNow(),months:raw.getAll('mes').map(Number),active:edit?('active' in fd):true,created:f.created||todayStr()});
+      applyAmount(r,f,a,fd,edit);upsert(S.fixed,r);
+      commit(edit?'Gasto fijo actualizado':'Gasto fijo guardado');
+    },onDelete:edit?()=>{remove(S.fixed,f.id);dropPaid('f:'+f.id+':');commit('Gasto fijo eliminado');}:null});
+}
+function findItem(type,id){return (type==='f'?S.fixed:S.inst).find(x=>x.id===id);}
+function itemDetail(type,id){
+  const it=findItem(type,id);if(!it)return;
+  const now=ymNow(),back=ymAdd(now,-11),from=it.start>back?it.start:back,to=ymAdd(now,it.total===1?24:6);
+  const ds=dues(from+'-01',to+'-31').filter(d=>d.type===type&&d.id===id);
+  const ch=(it.hist||[]).slice().sort((a,b)=>a.from.localeCompare(b.from));
+  let body='<div class="c"><div class="muted">'+(it.total===1?'Pago único':'Monto de '+MONTHS[+now.slice(5,7)-1])+'</div><div class="amount mid">'+money(it.total===1?amountFor(it,it.start):amountFor(it,now))+'</div></div>';
+  if(ch.length)body+='<div class="card"><h3>Cambios de monto</h3>'+ch.map(h=>'<p>Desde '+ymLabel(h.from).toLowerCase()+': <b style="color:var(--ink)">'+money0(h.amount)+'</b></p>').join('')+'</div>';
+  body+='<h2>Mes a mes</h2>';
+  body+=ds.length?'<div class="list mvlist">'+ds.map(d=>{
+    const ov=it.over&&it.over[d.ym]!=null,df=dayDiff(d.due);
+    let sub,cls='';
+    if(d.paid){sub='Pagado el '+dfmt(d.paid)+(Math.abs(d.amount-d.expected)>0.004?' (esperabas '+money0(d.expected)+')':'');cls='ok';}
+    else if(df<0){sub='Venció el '+dfmt(d.due)+', sin pagar';cls='bad';}
+    else sub='Vence el '+dfmt(d.due);
+    return '<button type="button" class="row" data-act="m-edit" data-k="'+esc(d.key)+'" data-back="1"><div class="grow"><div class="t">'+ymLabel(d.ym)+(ov?' <span class="tag warn">solo este mes</span>':'')+(d.ym===now?' <span class="tag">este mes</span>':'')+'</div><div class="s '+cls+'">'+esc(sub)+'</div></div><div class="amt">'+money0(d.amount)+'</div></button>';
+  }).join('')+'</div><p class="hint">Toca un mes para cambiar su monto, marcarlo como pagado o corregir lo que pagaste.</p>':'<div class="empty">No hay meses para mostrar.</div>';
+  sheet((EMO[it.cat]||'📌')+' '+it.name,body,{footer:'<div class="actions"><button type="button" class="btn" data-act="'+(type==='f'?'edit-fijo':'edit-cuota')+'" data-id="'+it.id+'">Editar</button><button type="button" class="btn primary" data-act="close">Listo</button></div>'});
+}
+function monthSheet(key,quick,back){
+  const p=key.split(':'),type=p[0],id=p[1],ym=p[2],it=findItem(type,id);if(!it)return;
+  const pd=paidInfo(key),exp=amountFor(it,ym),lbl=ymLabel(ym),reopen=()=>{if(back)later(()=>itemDetail(type,id));};
+  if(pd){
+    sheet(it.name+', '+lbl.toLowerCase(),'<p class="lead">Ya está pagado. Puedes corregir el monto o la fecha.</p>'+
+      '<label class="big"><span>Monto que pagaste (S/)</span><input name="amount" inputmode="decimal" value="'+(pd.amount!=null?pd.amount:exp)+'" required autofocus></label>'+
+      field('Fecha de pago','date',pd.date,'type="date" required'),
+      {onSubmit:fd=>{const a=num(fd.amount);if(a<=0){toast('Ingresa un monto');return false;}S.paid[key]={date:fd.date,amount:a};commit('Pago corregido');reopen();},
+       onDelete:()=>{delete S.paid[key];commit('Pago desmarcado');reopen();},delLabel:'Desmarcar',delMsg:'¿Desmarcar este pago?'});
+    return;
+  }
+  if(quick){
+    sheet('Pagar '+it.name,'<p class="lead">'+lbl+'. Si este mes el monto fue distinto, cámbialo aquí: solo afecta a este mes.</p>'+
+      '<label class="big"><span>Monto pagado (S/)</span><input name="amount" inputmode="decimal" value="'+exp+'" required autofocus></label>'+
+      field('Fecha de pago','date',todayStr(),'type="date" required'),
+      {submit:'Confirmar pago',onSubmit:fd=>{const a=num(fd.amount);if(a<=0){toast('Ingresa un monto');return false;}
+        S.paid[key]={date:fd.date,amount:a};commit(Math.abs(a-exp)>0.004?'Pago registrado con '+money0(a)+' (esperabas '+money0(exp)+')':'Pago registrado');reopen();}});
+    return;
+  }
+  sheet(it.name+', '+lbl.toLowerCase(),
+    '<label class="big"><span>Monto de este mes (S/)</span><input name="amount" inputmode="decimal" value="'+exp+'" required autofocus></label>'+
+    (it.total===1?'':'<div class="lbl">¿Hasta cuándo aplica?</div><div class="chips"><label><input type="radio" name="scope" value="solo" checked><span>Solo '+MONTHS[+ym.slice(5,7)-1]+'</span></label><label><input type="radio" name="scope" value="desde"><span>De '+MONTHS[+ym.slice(5,7)-1]+' en adelante</span></label></div>')+
+    '<label class="check"><input type="checkbox" name="pagado"><span>Ya lo pagué</span></label><div id="pw" hidden>'+field('Fecha de pago','date',todayStr(),'type="date"')+'</div>',
+    {onInput:f=>{$('#pw').hidden=!f.elements.pagado.checked;},
+     onSubmit:fd=>{const a=num(fd.amount);if(a<=0){toast('Ingresa un monto');return false;}
+      if(it.total===1){it.amount=a;it.hist=[];it.over={};}
+      else if(fd.scope==='desde')setFrom(it,ym,a);else setOver(it,ym,a);
+      if('pagado' in fd)S.paid[key]={date:fd.date||todayStr(),amount:a};
+      commit('pagado' in fd?'Pago registrado':(fd.scope==='desde'?'Nuevo monto desde '+MONTHS[+ym.slice(5,7)-1]:'Monto de '+MONTHS[+ym.slice(5,7)-1]+' actualizado'));reopen();}});
+}
+function dropPaid(prefix){Object.keys(S.paid).forEach(k=>{if(k.indexOf(prefix)===0)delete S.paid[k];});}
+function cuotaForm(c){
+  const edit=!!c;c=c||{start:ymNow(),cat:'Educación',months:[],total:''};
+  sheet(edit?'Editar cuota':'Nueva cuota o pago único',
+    field('Nombre','name',c.name||'','maxlength="40" placeholder="Adelanto UPC, préstamo, tarjeta…" required autofocus')+
+    '<div class="two">'+field('Monto por cuota (S/)','amount',edit?amountFor(c,c.total===1?c.start:ymNow()):'','inputmode="decimal" placeholder="0.00" required')+field('Día de pago','day',c.day||'','type="number" min="1" max="31" inputmode="numeric" required')+'</div>'+(edit&&c.total>1?scopeHtml(true):'')+
+    '<div class="two">'+field('Número de cuotas (1 = pago único)','total',c.total,'type="number" min="1" max="120" inputmode="numeric" required')+field('Primera cuota en','start',c.start,'type="month" required')+'</div>'+
+    '<div class="lbl">Solo en estos meses (vacío = todos)</div>'+monthChips(c.months)+
+    '<div class="lbl">Categoría</div>'+chips('cat',c.cat,CATS,EMO),
+    {onInput:f2=>{const sc=f2.querySelector('[name=scope]:checked'),w=$('#desdew');if(w)w.hidden=!(sc&&sc.value==='desde');},
+     onSubmit:(fd,raw)=>{
+      const a=num(fd.amount),d=int(fd.day),n=int(fd.total);
+      if(!fd.name.trim()||a<=0||!(d>=1&&d<=31)||n<1){toast('Revisa nombre, monto, día y cuotas');return false;}
+      const r=Object.assign({},c,{id:c.id||uid(),name:fd.name.trim(),day:d,total:n,start:fd.start,months:raw.getAll('mes').map(Number),cat:fd.cat||'Otros',created:c.created||todayStr()});
+      if(n===1||!edit){r.amount=a;r.hist=[];r.over={};}else applyAmount(r,c,a,fd,true);
+      upsert(S.inst,r);
+      commit(edit?'Cuota actualizada':'Cuota guardada');
+    },onDelete:edit?()=>{remove(S.inst,c.id);dropPaid('c:'+c.id+':');commit('Cuota eliminada');}:null});
+}
+function destChips(sel){
+  const opts=[['disponible','💵 Lo disponible']].concat(S.pockets.map(p=>[p.id,(p.emoji||'💰')+' '+p.name]));
+  if(!opts.some(o=>o[0]===sel))sel='disponible';
+  return '<div class="lbl">¿A dónde va?</div><div class="chips">'+opts.map(o=>'<label><input type="radio" name="dest" value="'+o[0]+'"'+(o[0]===sel?' checked':'')+'><span>'+esc(o[1])+'</span></label>').join('')+'</div>';
+}
+function extraForm(x){
+  const edit=!!x;x=x||{kind:'grati',sure:true,include:true,date:nextDate(12,15),dest:'disponible'};
+  sheet(edit?'Editar ingreso esperado':'Nuevo ingreso esperado',
+    '<div class="lbl">Tipo</div><div class="chips">'+Object.keys(XKINDS).map(k=>'<label><input type="radio" name="kind" value="'+k+'"'+(k===x.kind?' checked':'')+'><span>'+XEMO[k]+' '+XKINDS[k]+'</span></label>').join('')+'</div>'+
+    field('Nombre','name',x.name||'','maxlength="40" placeholder="Gratificación de diciembre"')+
+    '<div class="two">'+field('Monto estimado (S/)','amount',x.amount||'','inputmode="decimal" placeholder="0.00" required')+field('Fecha esperada','date',x.date,'type="date" required')+'</div>'+
+    destChips(x.dest)+
+    '<label class="check"><input type="checkbox" name="sure"'+(x.sure?' checked':'')+'><span>Es seguro (no es una estimación)</span></label>'+
+    '<label class="check"><input type="checkbox" name="include"'+(x.include?' checked':'')+'><span>Contarlo en mi plan</span></label>',
+    {onSubmit:fd=>{
+      const a=num(fd.amount);if(a<=0){toast('Indica el monto');return false;}
+      upsert(S.extras,Object.assign({},x,{id:x.id||uid(),kind:fd.kind,name:(fd.name||'').trim()||XKINDS[fd.kind],amount:a,date:fd.date,dest:fd.dest||'disponible',sure:'sure' in fd,include:'include' in fd,done:false}));
+      if(P)P.incl={};planInitKeep();commit(edit?'Ingreso esperado actualizado':'Ingreso esperado agregado');
+    },onDelete:edit?()=>{remove(S.extras,x.id);commit('Eliminado');}:null});
+}
+function planInitKeep(){if(P)S.extras.forEach(x=>{if(P.incl[x.id]===undefined)P.incl[x.id]=!!x.include;});}
+function extraRegister(x){
+  sheet('Registrar '+x.name,'<p class="lead">Anota el monto real que te depositaron.</p>'+
+    '<label class="big"><span>Monto recibido (S/)</span><input name="amount" inputmode="decimal" value="'+x.amount+'" required autofocus></label>'+
+    field('Fecha','date',todayStr(),'type="date" required')+destChips(x.dest),
+    {submit:'Registrar',onSubmit:fd=>{
+      const a=num(fd.amount);if(a<=0){toast('Indica el monto');return false;}
+      const pk=S.pockets.find(p=>p.id===fd.dest);
+      x.done=true;x.doneDate=fd.date;x.amount=a;
+      if(pk&&pk.kind==='cts'){addMove(pk.id,'ajuste',a,x.name,fd.date);commit(x.name+' sumada a tu CTS');return;}
+      S.income.push({id:uid(),kind:'extra',gross:a,afp:0,other:0,net:a,concept:x.name,date:fd.date});
+      if(pk){addMove(pk.id,'aporte',a,x.name,fd.date);commit(x.name+' guardada en '+pk.name);return;}
+      commit(x.name+' registrada');
+      later(()=>payFirst(Math.round(a*0.8),'Te llegó '+x.name+'. Guarda la mayor parte antes de que se vaya en salidas.'));
+    }});
+}
+function sueldoForm(){
+  const st=S.set;
+  sheet('Sueldo y cobro',field('Sueldo bruto mensual (S/)','gross',st.gross||'','inputmode="decimal" required autofocus')+
+    field('AFP (% de descuento)','afp',st.afpPct,'inputmode="decimal"')+
+    '<div class="lbl">¿Cómo cobras?</div><div class="chips"><label><input type="radio" name="mode" value="mensual"'+(st.payMode!=='quincenal'?' checked':'')+'><span>Una vez al mes</span></label><label><input type="radio" name="mode" value="quincenal"'+(st.payMode==='quincenal'?' checked':'')+'><span>Por quincena</span></label></div>'+
+    '<div class="net"><span>Neto al mes</span><span id="netv" class="num"></span></div>',
+    {onInput:f=>{const e=f.elements;$('#netv').textContent=money(num(e.gross.value)*(1-num(e.afp.value)/100));},
+     onSubmit:fd=>{if(num(fd.gross)<=0){toast('Ingresa tu sueldo');return false;}
+      Object.assign(S.set,{gross:num(fd.gross),afpPct:num(fd.afp),payMode:fd.mode||'mensual'});P=null;commit('Sueldo actualizado');}});
+}
+function ahorroSetForm(){
+  sheet('Piso y meta de ahorro','<p class="lead">El piso es el monto del que no quieres bajar nunca. La app te avisa si tu plan te lleva por debajo.</p>'+
+    field('Piso de seguridad (S/)','floor',S.set.floor||'','inputmode="decimal" autofocus')+
+    field('Meta de ahorro al mes (S/)','save',S.set.saveMonthly||'','inputmode="decimal"'),
+    {onSubmit:fd=>{S.set.floor=num(fd.floor);S.set.saveMonthly=num(fd.save);P=null;commit('Guardado');}});
+}
+function budgetsForm(){
+  sheet('Presupuestos al mes','<p class="lead">Déjalo vacío si no quieres límite. La app te avisa al 80% y cuando te pasas.</p>'+
+    CATS.map(c=>field(EMO[c]+' '+c,'b_'+c,num(S.budgets[c])||'','inputmode="decimal" placeholder="Sin límite"')).join(''),
+    {onSubmit:fd=>{CATS.forEach(c=>{const v=num(fd['b_'+c]);if(v>0)S.budgets[c]=v;else delete S.budgets[c];});P=null;commit('Presupuestos guardados');}});
+}
+
+/* ================= Asistente ================= */
+let WZ=null;
+const WZT=['Tu sueldo','Pagos fijos','Gastos del mes','Lo que ya tienes','Lo que viene'];
+const WZMONEY=['pareja','foodCost','otherVar','saveMonthly'];
+function wizard(){
+  const st=S.set,fx=n=>S.fixed.find(f=>f.src==='wiz-'+n),xw=n=>S.extras.find(x=>x.src==='wiz-'+n&&!x.done),pk=n=>S.pockets.find(p=>p.src==='wiz-'+n),adel=S.inst.find(c=>c.src==='wiz-adel');
+  const gross=st.gross||2300;
+  WZ={step:0,D:{
+    gross,afpPct:st.afpPct==null?10:st.afpPct,payMode:st.payMode||'mensual',
+    upcOn:fx('upc')?true:!st.onboarded,upc:fx('upc')?amountFor(fx('upc'),ymNow()):1090,upcDay:fx('upc')?fx('upc').day:5,
+    celOn:fx('cel')?true:!st.onboarded,cel:fx('cel')?amountFor(fx('cel'),ymNow()):30,celDay:fx('cel')?fx('cel').day:10,
+    pareja:S.budgets.Pareja!=null?S.budgets.Pareja:400,foodDays:st.foodDays==null?10:st.foodDays,foodCost:st.foodCost||10,otherVar:st.otherVar||0,
+    ahorro:pk('ahorro')?pocketBal(pk('ahorro').id):300,cts:pk('cts')?pocketBal(pk('cts').id):1200,floor:st.floor||1000,saveMonthly:st.saveMonthly||300,
+    adelOn:adel?true:!st.onboarded,adel:adel?adel.amount:3000,adelDate:adel?adel.start+'-'+pad(adel.day):nextDate(1,15),
+    gratiOn:xw('grati')?true:!st.onboarded,grati:xw('grati')?xw('grati').amount:Math.round(gross*1.09),gratiDate:xw('grati')?xw('grati').date:nextDate(12,15),
+    ctsOn:xw('cts')?true:!st.onboarded,ctsN:xw('cts')?xw('cts').amount:Math.round((gross+gross/6)/2),ctsDate:xw('cts')?xw('cts').date:nextDate(11,15),
+    utilOn:xw('util')?xw('util').include:false,util:xw('util')?xw('util').amount:3900,utilDate:xw('util')?xw('util').date:nextDate(4,15),
+    afpOn:xw('afp')?xw('afp').include:false,afpR:xw('afp')?xw('afp').amount:2400,afpDate:xw('afp')?xw('afp').date:nextDate(12,31)
+  }};
+  renderWz();
+}
+const wf=(label,k,type,extra)=>{const v=WZ.D[k];return '<label><span>'+label+'</span><input data-wz="'+k+'" value="'+esc(v)+'" '+(type==='date'?'type="date"':'inputmode="decimal"')+' '+(extra||'')+'></label>';};
+const wsw=(k,label)=>'<label class="check" style="margin:0"><input type="checkbox" data-wz="'+k+'"'+(WZ.D[k]?' checked':'')+'><span>'+label+'</span></label>';
+const wsl=(k,label,min,max,step)=>'<div class="sl"><div class="l"><span>'+label+'</span><b id="wzv-'+k+'">'+(WZMONEY.includes(k)?money0(WZ.D[k]):WZ.D[k]+' días')+'</b></div><input type="range" data-wz="'+k+'" min="'+min+'" max="'+max+'" step="'+step+'" value="'+WZ.D[k]+'" aria-label="'+label+'"></div>';
+function wzStep(s){
+  const D=WZ.D;
+  if(s===0)return wf('Sueldo bruto mensual (S/)','gross')+wf('AFP (% de descuento)','afpPct')+
+    '<div class="lbl">¿Cómo cobras?</div><div class="chips"><label><input type="radio" name="wzpm" data-wz="payMode" value="mensual"'+(D.payMode!=='quincenal'?' checked':'')+'><span>Una vez al mes</span></label><label><input type="radio" name="wzpm" data-wz="payMode" value="quincenal"'+(D.payMode==='quincenal'?' checked':'')+'><span>Por quincena</span></label></div>';
+  if(s===1)return '<div class="grp"><div class="gt"><span>🎓 Universidad (mensual)</span>'+wsw('upcOn','')+'</div><div class="two">'+wf('Monto','upc')+wf('Día de pago','upcDay')+'</div></div>'+
+    '<div class="grp"><div class="gt"><span>💡 Línea de celular</span>'+wsw('celOn','')+'</div><div class="two">'+wf('Monto','cel')+wf('Día de pago','celDay')+'</div></div>'+
+    '<p class="hint">Después puedes agregar más pagos o elegir meses específicos en la pestaña Pagos.</p>';
+  if(s===2)return wsl('pareja','❤️ Salidas con tu pareja al mes',0,1200,10)+wsl('foodDays','🍽️ Días que comes afuera',0,30,1)+wsl('foodCost','Costo por día afuera',5,40,1)+wsl('otherVar','📦 Otros gastos e imprevistos',0,800,10)+
+    '<p class="hint">Las salidas con tu pareja incluyen cine, hospedaje, comida y regalos. La app te avisará cuando llegues al 80%.</p>';
+  if(s===3)return wf('💰 Ahorro que tienes hoy (S/)','ahorro')+wf('🏦 CTS que ya tienes (S/)','cts')+wf('🛡️ Piso: no quiero bajar de (S/)','floor')+wsl('saveMonthly','🎯 Meta de ahorro al mes',0,1500,10);
+  return '<div class="grp"><div class="gt"><span>🎓 Adelanto de cursos</span>'+wsw('adelOn','')+'</div><div class="two">'+wf('Monto','adel')+wf('Fecha','adelDate','date')+'</div></div>'+
+    '<div class="grp"><div class="gt"><span>🎄 Gratificación</span>'+wsw('gratiOn','')+'</div><div class="two">'+wf('Monto aprox.','grati')+wf('Fecha','gratiDate','date')+'</div></div>'+
+    '<div class="grp"><div class="gt"><span>🏦 CTS (va a tu CTS)</span>'+wsw('ctsOn','')+'</div><div class="two">'+wf('Monto aprox.','ctsN')+wf('Fecha','ctsDate','date')+'</div></div>'+
+    '<div class="grp"><div class="gt"><span>📈 Utilidades <span class="tag warn">estimado</span></span>'+wsw('utilOn','')+'</div><div class="two">'+wf('Monto aprox.','util')+wf('Fecha','utilDate','date')+'</div></div>'+
+    '<div class="grp"><div class="gt"><span>🧓 Retiro AFP <span class="tag warn">por confirmar</span></span>'+wsw('afpOn','')+'</div><div class="two">'+wf('Monto','afpR')+wf('Fecha','afpDate','date')+'</div></div>'+
+    '<p class="hint">Activa solo lo que estés seguro de recibir. Las utilidades y el retiro de AFP quedan guardados aunque no los cuentes.</p>';
+}
+function wzLive(){
+  const D=WZ.D,neto=num(D.gross)*(1-num(D.afpPct)/100),fijos=(D.upcOn?num(D.upc):0)+(D.celOn?num(D.cel):0);
+  const vr=num(D.pareja)+int(D.foodDays)*num(D.foodCost)+num(D.otherVar),sobra=neto-fijos-vr,s=WZ.step;
+  if(s===0)return 'Neto al mes: <b>'+money(neto)+'</b>';
+  if(s===1)return 'Después de pagos fijos te quedan <b>'+money0(neto-fijos)+'</b> al mes';
+  if(s===2)return 'Te sobrarían <b style="color:'+(sobra<0?'var(--bad)':'var(--in)')+'">'+money0(sobra)+'</b> al mes';
+  if(s===3){const ok=num(D.saveMonthly)<=sobra;return ok?'Tu meta de <b>'+money0(D.saveMonthly)+'</b> alcanza. Margen: <b>'+money0(sobra-num(D.saveMonthly))+'</b> al mes':'Tu meta pasa lo que te sobra (<b>'+money0(sobra)+'</b>). Bájala o recorta gastos.';}
+  if(!D.adelOn)return 'Te sobran <b>'+money0(sobra)+'</b> al mes para ahorrar';
+  const ml=monthsUntil(D.adelDate),g=D.gratiOn&&D.gratiDate<=D.adelDate?num(D.grati):0,before=num(D.ahorro)+sobra*ml+g;
+  return 'Para el adelanto llegarías con unos <b>'+money0(before)+'</b>. '+(before>=num(D.adel)?'Te alcanza y te quedan <b>'+money0(before-num(D.adel))+'</b>.':'Te faltarían <b>'+money0(num(D.adel)-before)+'</b>.');
+}
+function renderWz(){
+  const el=$('#sheet'),s=WZ.step;
+  el.innerHTML='<div class="back" data-act="close"></div><div class="panel"><div class="grab"></div><div class="dots">'+WZT.map((_,i)=>'<i class="'+(i<=s?'on':'')+'"></i>').join('')+'</div>'+
+    '<h2>'+WZT[s]+'</h2><div>'+wzStep(s)+'</div><div class="live" id="wzlive">'+wzLive()+'</div>'+
+    '<div class="actions">'+(s>0?'<button class="btn" data-act="wz-back">Atrás</button>':'<button class="btn" data-act="close">Cancelar</button>')+
+    '<button class="btn primary" data-act="'+(s<WZT.length-1?'wz-next':'wz-done')+'">'+(s<WZT.length-1?'Siguiente':'Crear mi plan')+'</button></div></div>';
+  el.hidden=false;document.body.classList.add('lock');el.querySelector('.panel').scrollTop=0;
+}
+function applyWizard(){
+  const D=WZ.D,today=todayStr(),start=ymNow();
+  Object.assign(S.set,{gross:num(D.gross),afpPct:num(D.afpPct),payMode:D.payMode,floor:num(D.floor),saveMonthly:num(D.saveMonthly),
+    foodDays:int(D.foodDays),foodCost:num(D.foodCost),otherVar:num(D.otherVar),onboarded:true});
+  if(num(D.pareja)>0)S.budgets.Pareja=num(D.pareja);else delete S.budgets.Pareja;
+  const food=int(D.foodDays)*num(D.foodCost);if(food>0)S.budgets.Comida=food;else delete S.budgets.Comida;
+  const keepFixed=(src,on,def)=>{let f=S.fixed.find(x=>x.src===src);
+    if(!on){if(f){remove(S.fixed,f.id);}return;}
+    if(!f){f={id:uid(),src,start,active:true,created:today,months:[],amount:def.amount};S.fixed.push(f);}
+    else if(Math.abs(def.amount-amountFor(f,start))>0.004)setFrom(f,start,def.amount);
+    const d2=Object.assign({},def);delete d2.amount;Object.assign(f,d2);};
+  keepFixed('wiz-upc',D.upcOn,{name:'UPC',amount:num(D.upc),day:int(D.upcDay)||5,cat:'Educación'});
+  keepFixed('wiz-cel',D.celOn,{name:'Línea de celular',amount:num(D.cel),day:int(D.celDay)||10,cat:'Servicios'});
+  let ad=S.inst.find(c=>c.src==='wiz-adel');
+  if(D.adelOn){if(!ad){ad={id:uid(),src:'wiz-adel',created:today,months:[]};S.inst.push(ad);}
+    Object.assign(ad,{hist:[],over:{},name:'Adelanto de cursos UPC',amount:num(D.adel),day:int(D.adelDate.slice(8,10))||15,total:1,start:D.adelDate.slice(0,7),cat:'Educación'});}
+  else if(ad){remove(S.inst,ad.id);}
+  const pa=ensurePocket('wiz-ahorro',{name:'Ahorro',kind:'ahorro',emoji:'💰'});setBalance(pa.id,num(D.ahorro));
+  const pc=ensurePocket('wiz-cts',{name:'CTS',kind:'cts',emoji:'🏦'});setBalance(pc.id,num(D.cts));
+  if(D.adelOn)ensurePocket('wiz-meta',{name:'Adelanto UPC',kind:'meta',emoji:'🎓',target:num(D.adel),deadline:D.adelDate});
+  const keepX=(src,on,def)=>{let x=S.extras.find(e=>e.src===src&&!e.done);
+    if(!x){x={id:uid(),src,done:false};S.extras.push(x);}Object.assign(x,def,{include:!!on});};
+  keepX('wiz-grati',D.gratiOn,{kind:'grati',name:'Gratificación',amount:num(D.grati),date:D.gratiDate,dest:'disponible',sure:true});
+  keepX('wiz-cts',D.ctsOn,{kind:'cts',name:'CTS',amount:num(D.ctsN),date:D.ctsDate,dest:pc.id,sure:true});
+  keepX('wiz-util',D.utilOn,{kind:'utilidades',name:'Utilidades',amount:num(D.util),date:D.utilDate,dest:'disponible',sure:false});
+  keepX('wiz-afp',D.afpOn,{kind:'afp',name:'Retiro AFP',amount:num(D.afpR),date:D.afpDate,dest:'disponible',sure:false});
+  WZ=null;P=null;closeSheet();view.tab='plan';commit('¡Tu plan está listo!');window.scrollTo(0,0);
+}
+
+/* ================= Respaldo ================= */
+function download(name,text,type){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+function exportJSON(){S.set.lastBackup=todayStr();save();download('miplata-respaldo-'+todayStr()+'.json',JSON.stringify(S,null,2),'application/json');render();toast('Respaldo exportado');}
+function exportCSV(){
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',rows=[];
+  S.income.forEach(i=>rows.push([i.date,'Ingreso',KINDS[i.kind]||'Ingreso',i.concept||'',i.net]));
+  S.tx.forEach(t=>rows.push([t.date,'Gasto',t.cat+(t.sub?' / '+t.sub:''),t.note||'',-t.amount]));
+  S.moves.forEach(m=>{const p=S.pockets.find(x=>x.id===m.pocketId);rows.push([m.date,{aporte:'Ahorro',retiro:'Retiro de ahorro',ajuste:'Ajuste de ahorro'}[m.type],p?p.name:'',m.note||'',m.type==='retiro'?-m.amount:m.amount]);});
+  const keys=Object.keys(S.paid);
+  if(keys.length){const yms=keys.map(k=>k.split(':')[2]).sort();
+    dues(yms[0]+'-01',yms[yms.length-1]+'-31').filter(d=>d.paid).forEach(d=>rows.push([d.paid,'Pago',d.cat,d.name+(d.label?' ('+d.label+')':''),-d.amount]));}
+  rows.sort((a,b)=>a[0].localeCompare(b[0]));rows.unshift(['Fecha','Tipo','Categoría','Detalle','Monto']);
+  download('miplata-'+todayStr()+'.csv','\ufeff'+rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv');toast('Archivo CSV exportado');
+}
+function importJSON(text){
+  let d;try{d=JSON.parse(text);}catch(e){toast('El archivo no es un respaldo válido');return;}
+  if(!d||!Array.isArray(d.income)||!Array.isArray(d.tx)){toast('El archivo no es un respaldo de Mi Plata');return;}
+  if(!confirm('Esto reemplaza los datos actuales de este dispositivo. ¿Continuar?'))return;
+  S=migrate(d);P=null;commit('Respaldo importado');
+}
+
+/* ================= Eventos ================= */
+let tt;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2800);}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]');if(!t)return;
+  const a=t.dataset.act,id=t.dataset.id;
+  switch(a){
+    case 'tab':P=null;view.tab=t.dataset.tab;closeSheet();render();window.scrollTo(0,0);break;
+    case 'prev':shift(-1);break;
+    case 'next':shift(1);break;
+    case 'mode':{if(t.dataset.v==='mes')view.half=0;else{const n=new Date(),same=n.getFullYear()===view.y&&n.getMonth()===view.m;view.half=same&&n.getDate()>15?2:1;}render();break;}
+    case 'mov':view.mov=t.dataset.v;view.cat='';render();break;
+    case 'fcat':view.cat=t.value;render();break;
+    case 'fab':view.tab==='movs'&&view.mov==='ingresos'?ingresoForm():gastoForm();break;
+    case 'close':WZ=null;closeSheet();break;
+    case 'qa':{const i=$('#sheet [name=amount]');if(i){i.value=t.dataset.v;i.dispatchEvent(new Event('input',{bubbles:true}));}break;}
+    case 'edit-tx':gastoForm(S.tx.find(x=>x.id===id));break;
+    case 'edit-inc':ingresoForm(S.income.find(x=>x.id===id));break;
+    case 'edit-fijo':fijoForm(S.fixed.find(x=>x.id===id));break;
+    case 'edit-cuota':cuotaForm(S.inst.find(x=>x.id===id));break;
+    case 'add-fijo':fijoForm();break;
+    case 'add-cuota':cuotaForm();break;
+    case 'pay':monthSheet(t.dataset.key,!paidInfo(t.dataset.key),false);break;
+    case 'm-edit':monthSheet(t.dataset.k,false,!!t.dataset.back);break;
+    case 'it-open':itemDetail(t.dataset.t,id);break;
+    case 'payfirst':payFirst(num(t.dataset.v),'Págate primero: aparta tu ahorro antes de gastar.');break;
+    case 'mv-new':moveForm(t.dataset.v,id||null);break;
+    case 'mv-del':{const m=S.moves.find(x=>x.id===id);if(m&&confirm('¿Eliminar este movimiento?')){const pk=S.pockets.find(p=>p.id===m.pocketId);remove(S.moves,id);save();render();if(pk)pocketDetail(pk);toast('Movimiento eliminado');}break;}
+    case 'pk-new':pocketForm();break;
+    case 'pk-open':pocketDetail(S.pockets.find(x=>x.id===id));break;
+    case 'pk-edit':pocketForm(S.pockets.find(x=>x.id===id));break;
+    case 'x-new':extraForm();break;
+    case 'x-edit':extraForm(S.extras.find(x=>x.id===id));break;
+    case 'x-reg':extraRegister(S.extras.find(x=>x.id===id));break;
+    case 'pt':P.sel=P.sel===+t.dataset.i?null:+t.dataset.i;$('#plan-dyn').innerHTML=planDyn();break;
+    case 'plan-save':
+      S.budgets.Pareja=P.pareja;if(!P.pareja)delete S.budgets.Pareja;
+      Object.assign(S.set,{foodDays:P.foodDays,foodCost:P.foodCost,otherVar:P.otherVar,saveMonthly:P.save});
+      {const fd=P.foodDays*P.foodCost;if(fd>0)S.budgets.Comida=fd;else delete S.budgets.Comida;}
+      S.extras.forEach(x=>{if(P.incl[x.id]!==undefined)x.include=P.incl[x.id];});
+      commit('Plan guardado');break;
+    case 'plan-reset':P=null;render();toast('Volviste a tu plan guardado');break;
+    case 'wizard':wizard();break;
+    case 'wz-next':if(WZ.step===0&&num(WZ.D.gross)<=0){toast('Ingresa tu sueldo');break;}WZ.step++;renderWz();break;
+    case 'wz-back':WZ.step--;renderWz();break;
+    case 'wz-done':applyWizard();break;
+    case 'set-sueldo':sueldoForm();break;
+    case 'set-ahorro':ahorroSetForm();break;
+    case 'set-budgets':budgetsForm();break;
+    case 'export-json':exportJSON();break;
+    case 'export-csv':exportCSV();break;
+    case 'import-json':$('#file').click();break;
+    case 'wipe':if(confirm('Se borrarán todos tus datos de este dispositivo. ¿Continuar?')){S=EMPTY();P=null;commit('Datos borrados');}break;
+  }
+});
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.dataset.p&&P){
+    P[el.dataset.p]=num(el.value);const k=el.dataset.p,lb=$('#pv-'+k);
+    if(lb)lb.textContent=k==='foodDays'?el.value+' días':money0(num(el.value));
+    $('#plan-sticky').innerHTML=planSticky();$('#plan-dyn').innerHTML=planDyn();
+  }
+  if(el.dataset.px&&P){P.incl[el.dataset.px]=el.checked;$('#plan-dyn').innerHTML=planDyn();}
+  if(el.dataset.wz&&WZ){
+    const k=el.dataset.wz;
+    if(el.type==='checkbox')WZ.D[k]=el.checked;else if(el.type==='radio'){if(el.checked)WZ.D[k]=el.value;}else WZ.D[k]=el.value;
+    const lb=$('#wzv-'+k);if(lb)lb.textContent=WZMONEY.includes(k)?money0(num(el.value)):el.value+' días';
+    $('#wzlive').innerHTML=wzLive();
+  }
+});
+document.addEventListener('change',e=>{const el=e.target;if((el.dataset.wz&&(el.type==='checkbox'||el.type==='radio'))||el.dataset.px){el.dispatchEvent(new Event('input',{bubbles:true}));}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden){WZ=null;closeSheet();}});
+$('#file').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importJSON(String(r.result));r.readAsText(f);e.target.value='';});
+
+/* ================= Inicio ================= */
+(async function(){
+  const d=await load();
+  if(d&&typeof d==='object')S=migrate(d);
+  render();
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>

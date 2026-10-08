@@ -1,0 +1,16 @@
+MI PLATA v3 - cómo publicarla (Cloudflare Pages)
+
+1. Descomprime esta carpeta.
+2. Cloudflare Dashboard > Workers & Pages > tu proyecto (o Create > Pages > Upload assets).
+3. Sube la carpeta completa (index.html, sw.js, manifest.webmanifest, _headers, icons/).
+4. En el celular abre la URL. Si ya la tenías instalada, ciérrala y ábrela de nuevo para que cargue la v2.
+   - Android (Chrome): menú ⋮ > Instalar app.
+   - iPhone (Safari): Compartir > Agregar a inicio.
+
+Primera vez: toca "Empezar" en Resumen. El asistente viene con tus números cargados
+(sueldo 2300, AFP 10%, UPC 1090, celular 30, pareja 400, comida afuera 10 días x S/10,
+ahorro 300, CTS 1200, adelanto UPC 3000 en enero, gratificación, CTS de noviembre,
+utilidades y retiro AFP como "por confirmar"). Revisa y ajusta cada paso.
+
+Tus datos de la v1 se conservan. Exporta un respaldo desde Ajustes (⚙︎) de vez en cuando.
+Si cambias index.html, sube la versión en sw.js (const V = 'miplata-v4').
